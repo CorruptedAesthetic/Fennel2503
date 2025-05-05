@@ -12,16 +12,19 @@ extern crate alloc;
 use alloc::vec::Vec;
 use sp_runtime::{
 	generic, impl_opaque_keys,
-	traits::{BlakeTwo256, IdentifyAccount, Verify},
+	traits::{BlakeTwo256, IdentifyAccount, Verify, Convert},
 	MultiAddress, MultiSignature,
 };
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
+use frame_support::parameter_types;
+use pallet_session::PeriodicSessions;
 
 pub use frame_system::Call as SystemCall;
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
+pub use pallet_session::historical as session_historical;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
@@ -183,9 +186,39 @@ pub type Executive = frame_executive::Executive<
 	Migrations,
 >;
 
+/// Convert `AccountId` → session index (here we just use the AccountId itself).
+pub struct ConvertAccountIdToSessionIndex;
+impl Convert<AccountId, Option<AccountId>> for ConvertAccountIdToSessionIndex {
+    fn convert(x: AccountId) -> Option<AccountId> { Some(x) }
+}
+
+parameter_types! {
+    pub const Period: u32 = 6 * HOURS;
+    pub const Offset: u32 = 0;
+}
+
+impl pallet_session::Config for Runtime {
+    type RuntimeEvent      = RuntimeEvent;
+    type ValidatorId       = <Self as frame_system::Config>::AccountId;
+    type ValidatorIdOf     = ConvertAccountIdToSessionIndex;
+    type ShouldEndSession  = PeriodicSessions<Period, Offset>;
+    
+    // Use a simple implementation for session management (no historical tracking)
+    type SessionManager    = ();
+    // who gets new_session() callbacks - both Aura and Grandpa need to be notified
+    type SessionHandler    = (Aura, Grandpa);
+    
+    type Keys              = SessionKeys;
+    type NextSessionRotation = ();
+    type WeightInfo        = pallet_session::weights::SubstrateWeight<Runtime>;
+    // Use the unit type () as DisablingStrategy, which is a valid implementation
+    // that does nothing (no disabling)
+    type DisablingStrategy = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
-mod runtime {
+pub mod runtime {
 	#[runtime::runtime]
 	#[runtime::derive(
 		RuntimeCall,
@@ -225,4 +258,9 @@ mod runtime {
 	// Include the custom logic from the pallet-template in the runtime.
 	#[runtime::pallet_index(7)]
 	pub type Template = pallet_template;
+	
+	#[runtime::pallet_index(8)]
+	pub type Session = pallet_session;
 }
+
+// No need for explicit re-export as the module is now public
