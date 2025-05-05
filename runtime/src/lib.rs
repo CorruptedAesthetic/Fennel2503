@@ -20,6 +20,7 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use frame_support::parameter_types;
 use pallet_session::PeriodicSessions;
+use pallet_validator_manager::{self, ValidatorOf};
 
 pub use frame_system::Call as SystemCall;
 pub use pallet_balances::Call as BalancesCall;
@@ -195,6 +196,7 @@ impl Convert<AccountId, Option<AccountId>> for ConvertAccountIdToSessionIndex {
 parameter_types! {
     pub const Period: u32 = 6 * HOURS;
     pub const Offset: u32 = 0;
+    pub const MinAuthorities: u32 = 2;
 }
 
 impl pallet_session::Config for Runtime {
@@ -203,8 +205,8 @@ impl pallet_session::Config for Runtime {
     type ValidatorIdOf     = ConvertAccountIdToSessionIndex;
     type ShouldEndSession  = PeriodicSessions<Period, Offset>;
     
-    // Use a simple implementation for session management (no historical tracking)
-    type SessionManager    = ();
+    // Use ValidatorManager as SessionManager
+    type SessionManager    = ValidatorManager;
     // who gets new_session() callbacks - both Aura and Grandpa need to be notified
     type SessionHandler    = (Aura, Grandpa);
     
@@ -214,6 +216,15 @@ impl pallet_session::Config for Runtime {
     // Use the unit type () as DisablingStrategy, which is a valid implementation
     // that does nothing (no disabling)
     type DisablingStrategy = ();
+}
+
+// Configure the validator manager pallet
+impl pallet_validator_manager::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type PrivilegedOrigin = frame_system::EnsureRoot<AccountId>;
+    type MinAuthorities = MinAuthorities;
+    type WeightInfo = pallet_validator_manager::weights::SubstrateWeight<Runtime>;
+    type ValidatorOf = ValidatorOf<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -261,6 +272,9 @@ pub mod runtime {
 	
 	#[runtime::pallet_index(8)]
 	pub type Session = pallet_session;
+	
+	#[runtime::pallet_index(9)]
+	pub type ValidatorManager = pallet_validator_manager;
 }
 
 // No need for explicit re-export as the module is now public

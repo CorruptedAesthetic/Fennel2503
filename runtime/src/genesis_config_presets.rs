@@ -44,7 +44,10 @@ fn testnet_genesis(
 		grandpa: pallet_grandpa::GenesisConfig {
 			authorities: initial_authorities.iter().map(|x| (x.1.clone(), 1)).collect::<Vec<_>>(),
 		},
-		sudo: SudoConfig { key: Some(root) },
+		sudo: SudoConfig { key: Some(root.clone()) },
+		validator_manager: pallet_validator_manager::GenesisConfig {
+			initial_validators: vec![root.clone()],
+		},
 	})
 }
 
