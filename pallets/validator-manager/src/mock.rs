@@ -6,8 +6,7 @@ use frame_support::{
     parameter_types,
     traits::{ConstU32, ConstU64, GenesisBuild, OneSessionHandler},
 };
-// We only import sp-io in dev-dependencies
-#[cfg(test)]
+// Use sp-io directly from the workspace
 use sp_io;
 use sp_core::{crypto::key_types::DUMMY, H256};
 use sp_runtime::{
