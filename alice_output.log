@@ -1,0 +1,35 @@
+It isn't safe to expose RPC publicly without a proxy server that filters available set of RPC methods.
+2025-05-06 20:26:53 Substrate Node    
+2025-05-06 20:26:53 ✌️  version 0.1.0-08aa70090f1    
+2025-05-06 20:26:53 ❤️  by Parity Technologies <admin@parity.io>, 2017-2025    
+2025-05-06 20:26:53 📋 Chain specification: Local Testnet    
+2025-05-06 20:26:53 🏷  Node name: Alice    
+2025-05-06 20:26:53 👤 Role: AUTHORITY    
+2025-05-06 20:26:53 💾 Database: RocksDb at /tmp/alice/chains/local_testnet/db/full    
+2025-05-06 20:26:55 🔨 Initializing Genesis block/state (state: 0xc510…360f, header-hash: 0xd09f…9c96)    
+2025-05-06 20:26:55  creating SingleState txpool Limit { count: 8192, total_bytes: 20971520 }/Limit { count: 819, total_bytes: 2097152 }.    
+2025-05-06 20:26:55 👴 Loading GRANDPA authority set from genesis on what appears to be first startup.    
+2025-05-06 20:26:55 Using default protocol ID "sup" because none is configured in the chain specs    
+2025-05-06 20:26:55 🏷  Local node identity is: 12D3KooWDkxfuBaCuX9cBQqpQN1RVHNL3uqaAUpUidCP7BaDgo1F    
+2025-05-06 20:26:55 Running libp2p network backend    
+2025-05-06 20:26:55 local_peer_id=12D3KooWDkxfuBaCuX9cBQqpQN1RVHNL3uqaAUpUidCP7BaDgo1F
+2025-05-06 20:26:55 💻 Operating system: linux    
+2025-05-06 20:26:55 💻 CPU architecture: x86_64    
+2025-05-06 20:26:55 💻 Target environment: gnu    
+2025-05-06 20:26:55 💻 CPU: AMD Ryzen 3 3100 4-Core Processor    
+2025-05-06 20:26:55 💻 CPU cores: 4    
+2025-05-06 20:26:55 💻 Memory: 32060MB    
+2025-05-06 20:26:55 💻 Kernel: 5.15.167.4-microsoft-standard-WSL2    
+2025-05-06 20:26:55 💻 Linux distribution: Ubuntu 24.04.2 LTS    
+2025-05-06 20:26:55 💻 Virtual machine: yes    
+2025-05-06 20:26:55 📦 Highest known block at #0    
+2025-05-06 20:26:55 〽️ Prometheus exporter started at 127.0.0.1:9615    
+2025-05-06 20:26:55 Running JSON-RPC server: addr=0.0.0.0:9944,[::]:41887    
+2025-05-06 20:26:55 Failed to trigger bootstrap: No known peers.
+2025-05-06 20:27:00 💤 Idle (0 peers), best: #0 (0xd09f…9c96), finalized #0 (0xd09f…9c96), ⬇ 0 ⬆ 0    
+2025-05-06 20:27:05 💤 Idle (0 peers), best: #0 (0xd09f…9c96), finalized #0 (0xd09f…9c96), ⬇ 0 ⬆ 0    
+2025-05-06 20:27:10 💤 Idle (0 peers), best: #0 (0xd09f…9c96), finalized #0 (0xd09f…9c96), ⬇ 0 ⬆ 0    
+2025-05-06 20:27:15 💤 Idle (0 peers), best: #0 (0xd09f…9c96), finalized #0 (0xd09f…9c96), ⬇ 0 ⬆ 0    
+2025-05-06 20:27:20 💤 Idle (0 peers), best: #0 (0xd09f…9c96), finalized #0 (0xd09f…9c96), ⬇ 0 ⬆ 0    
+2025-05-06 20:27:28 💤 Idle (0 peers), best: #0 (0xd09f…9c96), finalized #0 (0xd09f…9c96), ⬇ 0 ⬆ 0    
+2025-05-06 20:27:33 💤 Idle (0 peers), best: #0 (0xd09f…9c96), finalized #0 (0xd09f…9c96), ⬇ 0 ⬆ 0    

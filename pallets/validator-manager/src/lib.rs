@@ -212,7 +212,12 @@ pub mod pallet {
 }
 
 impl<T: Config> pallet_session::SessionManager<T::ValidatorId> for Pallet<T> {
-    fn new_session(_new_index: SessionIndex) -> Option<Vec<T::ValidatorId>> {
+    fn new_session(new_index: SessionIndex) -> Option<Vec<T::ValidatorId>> {
+        // Skip validator changes for the first two sessions to allow chain startup
+        if new_index <= 1 {
+            return None;
+        }
+
         let mut validators = Session::<T>::validators();
 
         // Apply pending changes
@@ -251,6 +256,15 @@ impl<T: Config> pallet_session::SessionManager<T::ValidatorId> for Pallet<T> {
 impl<T: Config> Pallet<T> {
     pub fn new_session(new_index: SessionIndex) -> Option<Vec<T::ValidatorId>> {
         <Self as pallet_session::SessionManager<_>>::new_session(new_index)
+    }
+}
+
+// Add a public helper for use in genesis config
+impl<T: Config> Pallet<T> {
+    /// Process the validator queue and return the new validator set
+    /// This is used in the genesis config to immediately activate validators
+    pub fn process_queue() -> Option<Vec<T::ValidatorId>> {
+        <Self as pallet_session::SessionManager<_>>::new_session(0)
     }
 }
 

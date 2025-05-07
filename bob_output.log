@@ -1,0 +1,48 @@
+It isn't safe to expose RPC publicly without a proxy server that filters available set of RPC methods.
+2025-05-06 19:22:11 Substrate Node    
+2025-05-06 19:22:11 ✌️  version 0.1.0-08aa70090f1    
+2025-05-06 19:22:11 ❤️  by Parity Technologies <admin@parity.io>, 2017-2025    
+2025-05-06 19:22:11 📋 Chain specification: Local Testnet    
+2025-05-06 19:22:11 🏷  Node name: Bob    
+2025-05-06 19:22:11 👤 Role: AUTHORITY    
+2025-05-06 19:22:11 💾 Database: RocksDb at /tmp/bob/chains/local_testnet/db/full    
+
+====================
+
+Version: 0.1.0-08aa70090f1
+
+   0: sp_panic_handler::set::{{closure}}
+   1: std::panicking::rust_panic_with_hook
+   2: std::panicking::begin_panic_handler::{{closure}}
+   3: std::sys::backtrace::__rust_end_short_backtrace
+   4: rust_begin_unwind
+   5: core::panicking::panic_fmt
+   6: core::panicking::panic
+   7: <futures_util::stream::stream::select_next_some::SelectNextSome<St> as core::future::future::Future>::poll
+   8: <core::future::poll_fn::PollFn<F> as core::future::future::Future>::poll
+   9: <sc_service::task_manager::prometheus_future::PrometheusFuture<T> as core::future::future::Future>::poll
+  10: <tracing_futures::Instrumented<T> as core::future::future::Future>::poll
+  11: tokio::runtime::context::runtime::enter_runtime
+  12: <tokio::runtime::blocking::task::BlockingTask<T> as core::future::future::Future>::poll
+  13: tokio::runtime::task::core::Core<T,S>::poll
+  14: tokio::runtime::task::harness::Harness<T,S>::poll
+  15: tokio::runtime::blocking::pool::Inner::run
+  16: std::sys::backtrace::__rust_begin_short_backtrace
+  17: core::ops::function::FnOnce::call_once{{vtable.shim}}
+  18: std::sys::pal::unix::thread::Thread::new::thread_start
+  19: <unknown>
+  20: <unknown>
+
+
+Thread 'tokio-runtime-worker' panicked at 'SelectNextSome polled after terminated', /home/neurosx/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-util-0.3.31/src/stream/stream/select_next_some.rs:32
+
+This is a bug. Please report it at:
+
+	support.anonymous.an
+
+2025-05-06 19:22:12 🔨 Initializing Genesis block/state (state: 0x6b0e…20f3, header-hash: 0x56bb…ec4a)    
+2025-05-06 19:22:12  creating SingleState txpool Limit { count: 8192, total_bytes: 20971520 }/Limit { count: 819, total_bytes: 2097152 }.    
+2025-05-06 19:22:12 👴 Loading GRANDPA authority set from genesis on what appears to be first startup.    
+2025-05-06 19:22:12 Using default protocol ID "sup" because none is configured in the chain specs    
+2025-05-06 19:22:12 🏷  Local node identity is: 12D3KooWB5S1Vzvxgx26pFWUkYfj1DZ1XWVwA1ifXdVt6hGQP1eb    
+2025-05-06 19:22:12 Running libp2p network backend    

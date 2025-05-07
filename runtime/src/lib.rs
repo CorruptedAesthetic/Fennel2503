@@ -194,7 +194,7 @@ impl Convert<AccountId, Option<AccountId>> for ConvertAccountIdToSessionIndex {
 }
 
 parameter_types! {
-    pub const Period: u32 = 6 * HOURS;
+    pub const Period: u32 = 2; // 2 blocks = ~12 seconds per session - extremely short for testing
     pub const Offset: u32 = 0;
     pub const MinAuthorities: u32 = 2;
 }
@@ -211,7 +211,7 @@ impl pallet_session::Config for Runtime {
     type SessionHandler    = (Aura, Grandpa);
     
     type Keys              = SessionKeys;
-    type NextSessionRotation = ();
+    type NextSessionRotation = PeriodicSessions<Period, Offset>;
     type WeightInfo        = pallet_session::weights::SubstrateWeight<Runtime>;
     // Use the unit type () as DisablingStrategy, which is a valid implementation
     // that does nothing (no disabling)

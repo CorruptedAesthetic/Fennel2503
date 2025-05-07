@@ -23,12 +23,13 @@ use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_genesis_builder::{self, PresetId};
 use sp_keyring::Sr25519Keyring;
+use crate::SessionKeys;
 
 // Returns the genesis config presets populated with given parameters.
 fn testnet_genesis(
 	initial_authorities: Vec<(AuraId, GrandpaId)>,
-	endowed_accounts: Vec<AccountId>,
 	root: AccountId,
+	endowed_accounts: Vec<AccountId>,
 ) -> Value {
 	build_struct_json_patch!(RuntimeGenesisConfig {
 		balances: BalancesConfig {
@@ -38,15 +39,36 @@ fn testnet_genesis(
 				.map(|k| (k, 1u128 << 60))
 				.collect::<Vec<_>>(),
 		},
-		aura: pallet_aura::GenesisConfig {
-			authorities: initial_authorities.iter().map(|x| (x.0.clone())).collect::<Vec<_>>(),
-		},
-		grandpa: pallet_grandpa::GenesisConfig {
-			authorities: initial_authorities.iter().map(|x| (x.1.clone(), 1)).collect::<Vec<_>>(),
-		},
 		sudo: SudoConfig { key: Some(root.clone()) },
 		validator_manager: pallet_validator_manager::GenesisConfig {
-			initial_validators: vec![root.clone()],
+			initial_validators: initial_authorities.iter().map(|x| {
+				if x.0 == sp_keyring::Sr25519Keyring::Alice.public().into() {
+					Sr25519Keyring::Alice.to_account_id()
+				} else if x.0 == sp_keyring::Sr25519Keyring::Bob.public().into() {
+					Sr25519Keyring::Bob.to_account_id()
+				} else {
+					panic!("Unknown authority in initial_authorities");
+				}
+			}).collect::<Vec<_>>(),
+		},
+		session: pallet_session::GenesisConfig {
+			keys: initial_authorities.iter().map(|x| {
+				let account_id = if x.0 == sp_keyring::Sr25519Keyring::Alice.public().into() {
+					Sr25519Keyring::Alice.to_account_id()
+				} else if x.0 == sp_keyring::Sr25519Keyring::Bob.public().into() {
+					Sr25519Keyring::Bob.to_account_id()
+				} else {
+					panic!("Unknown authority in initial_authorities");
+				};
+				(
+					account_id.clone(),
+					account_id.clone(),
+					SessionKeys {
+						aura: x.0.clone(),
+						grandpa: x.1.clone(),
+					}
+				)
+			}).collect::<Vec<_>>(),
 		},
 	})
 }
@@ -58,13 +80,13 @@ pub fn development_config_genesis() -> Value {
 			sp_keyring::Sr25519Keyring::Alice.public().into(),
 			sp_keyring::Ed25519Keyring::Alice.public().into(),
 		)],
+		sp_keyring::Sr25519Keyring::Alice.to_account_id(),
 		vec![
 			Sr25519Keyring::Alice.to_account_id(),
 			Sr25519Keyring::Bob.to_account_id(),
 			Sr25519Keyring::AliceStash.to_account_id(),
 			Sr25519Keyring::BobStash.to_account_id(),
 		],
-		sp_keyring::Sr25519Keyring::Alice.to_account_id(),
 	)
 }
 
@@ -81,11 +103,11 @@ pub fn local_config_genesis() -> Value {
 				sp_keyring::Ed25519Keyring::Bob.public().into(),
 			),
 		],
+		Sr25519Keyring::Alice.to_account_id(),
 		Sr25519Keyring::iter()
 			.filter(|v| v != &Sr25519Keyring::One && v != &Sr25519Keyring::Two)
 			.map(|v| v.to_account_id())
 			.collect::<Vec<_>>(),
-		Sr25519Keyring::Alice.to_account_id(),
 	)
 }
 
