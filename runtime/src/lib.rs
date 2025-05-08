@@ -227,6 +227,19 @@ impl pallet_validator_manager::Config for Runtime {
     type ValidatorOf = ValidatorOf<Runtime>;
 }
 
+parameter_types! {
+    pub const CertificateLockId: [u8; 8] = *b"certlock";
+    pub const CertificateLockPrice: u32 = 4_294_967_295; // max u32 value
+}
+
+impl pallet_certificate::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_certificate::weights::SubstrateWeight<Runtime>;
+    type Currency = pallet_balances::Pallet<Runtime>;
+    type LockId = CertificateLockId;
+    type LockPrice = CertificateLockPrice;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
 pub mod runtime {
@@ -275,6 +288,9 @@ pub mod runtime {
 	
 	#[runtime::pallet_index(9)]
 	pub type ValidatorManager = pallet_validator_manager;
+	
+	#[runtime::pallet_index(10)]
+	pub type Certificate = pallet_certificate;
 }
 
 // No need for explicit re-export as the module is now public
