@@ -10,7 +10,8 @@ members = [
     "node",
     "pallets/template",
     "pallets/validator-manager",
-    "pallets/certificate", 
+    "pallets/certificate",
+    "pallets/identity", 
     "runtime",
 ]
 resolver = "2"
