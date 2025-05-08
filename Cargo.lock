@@ -9665,6 +9665,7 @@ dependencies = [
  "pallet-infostratus",
  "pallet-keystore",
  "pallet-session",
+ "pallet-signal",
  "pallet-sudo",
  "pallet-template",
  "pallet-timestamp",

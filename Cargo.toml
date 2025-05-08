@@ -27,6 +27,7 @@ pallet-certificate = { path = "./pallets/certificate", default-features = false 
 pallet-identity = { path = "./pallets/identity", default-features = false }
 pallet-keystore = { path = "./pallets/keystore", default-features = false }
 pallet-infostratus = { path = "./pallets/infostratus", default-features = false }
+pallet-signal = { path = "./pallets/signal", default-features = false }
 clap = { version = "4.5.13" }
 frame-benchmarking-cli = { version = "47.0.0", default-features = false }
 frame-metadata-hash-extension = { version = "0.8.0", default-features = false }
