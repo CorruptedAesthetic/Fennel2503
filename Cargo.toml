@@ -14,7 +14,8 @@ members = [
     "pallets/identity",
     "pallets/keystore",
     "pallets/infostratus",
-    "pallets/signal", 
+    "pallets/signal",
+    "pallets/trust", 
     "runtime",
 ]
 resolver = "2"
