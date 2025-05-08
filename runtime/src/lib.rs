@@ -260,10 +260,17 @@ impl pallet_keystore::Config for Runtime {
     type MaxSize = ConstU32<64>; // Adjust as needed for your use case
 }
 
-// Infostratus Pallet Configuration
+parameter_types! {
+    pub const InfostratusLockId: [u8; 8] = *b"infosloc";
+    pub const InfostratusLockPrice: u32 = 1_000_000_000; // set as needed
+}
+
 impl pallet_infostratus::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type WeightInfo = pallet_infostratus::weights::SubstrateWeight<Runtime>;
+    type Currency = pallet_balances::Pallet<Runtime>;
+    type LockId = InfostratusLockId;
+    type LockPrice = InfostratusLockPrice;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -324,7 +331,6 @@ pub mod runtime {
 	#[runtime::pallet_index(12)]
 	pub type Keystore = pallet_keystore;
 
-	// Add Infostratus to construct_runtime! macro
 	#[runtime::pallet_index(13)]
 	pub type Infostratus = pallet_infostratus;
 }

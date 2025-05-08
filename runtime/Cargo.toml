@@ -35,6 +35,7 @@ pallet-validator-manager = { workspace = true }
 pallet-certificate = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-keystore = { workspace = true }
+pallet-infostratus = { workspace = true }
 scale-info = { features = ["derive", "serde"], workspace = true }
 serde_json = { workspace = true, default-features = false, features = ["alloc"] }
 sp-api.workspace = true
@@ -81,6 +82,7 @@ std = [
 	"pallet-certificate/std",
 	"pallet-identity/std",
 	"pallet-keystore/std",
+	"pallet-infostratus/std",
 	"scale-info/std",
 	"serde_json/std",
 	"sp-api/std",

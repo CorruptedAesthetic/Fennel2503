@@ -9647,6 +9647,7 @@ dependencies = [
  "pallet-certificate",
  "pallet-grandpa",
  "pallet-identity",
+ "pallet-infostratus",
  "pallet-keystore",
  "pallet-session",
  "pallet-sudo",
