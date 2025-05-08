@@ -9685,6 +9685,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-trust",
  "pallet-validator-manager",
  "parity-scale-codec",
  "scale-info",

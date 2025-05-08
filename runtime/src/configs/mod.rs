@@ -60,6 +60,10 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
+parameter_types! {
+    pub const MaxTrustParameterSize: u32 = 64;
+}
+
 /// The default types are being injected by [`derive_impl`](`frame_support::derive_impl`) from
 /// [`SoloChainDefaultConfig`](`struct@frame_system::config_preludes::SolochainDefaultConfig`),
 /// but overridden as needed.
@@ -155,6 +159,12 @@ impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_trust::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_trust::weights::SubstrateWeight<Runtime>;
+    type MaxTrustParameterSize = MaxTrustParameterSize;
 }
 
 // Removed duplicate implementation of pallet_template::Config for Runtime to avoid conflicts. The Config trait for pallet_template is now only implemented in lib.rs.

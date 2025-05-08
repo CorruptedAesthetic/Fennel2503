@@ -351,6 +351,9 @@ pub mod runtime {
 
 	#[runtime::pallet_index(14)]
 	pub type Signal = pallet_signal;
+
+	#[runtime::pallet_index(15)]
+	pub type Trust = pallet_trust;
 }
 
 // No need for explicit re-export as the module is now public
