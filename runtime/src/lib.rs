@@ -21,6 +21,7 @@ use sp_version::RuntimeVersion;
 use frame_support::parameter_types;
 use pallet_session::PeriodicSessions;
 use pallet_validator_manager::{self, ValidatorOf};
+use frame_support::pallet_prelude::ConstU32;
 
 pub use frame_system::Call as SystemCall;
 pub use pallet_balances::Call as BalancesCall;
@@ -240,6 +241,18 @@ impl pallet_certificate::Config for Runtime {
     type LockPrice = CertificateLockPrice;
 }
 
+impl pallet_template::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
+}
+
+// Implement the Config trait for the identity pallet in the runtime
+impl pallet_identity::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+    type MaxSize = ConstU32<64>; // Adjust as needed for your use case
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
 pub mod runtime {
@@ -291,6 +304,10 @@ pub mod runtime {
 	
 	#[runtime::pallet_index(10)]
 	pub type Certificate = pallet_certificate;
+	
+	// Add the identity pallet to the runtime with a unique index
+	#[runtime::pallet_index(11)]
+	pub type Identity = pallet_identity;
 }
 
 // No need for explicit re-export as the module is now public
