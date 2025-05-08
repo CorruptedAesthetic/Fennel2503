@@ -23,6 +23,7 @@ pallet-template = { path = "./pallets/template", default-features = false }
 pallet-validator-manager = { path = "./pallets/validator-manager", default-features = false }
 pallet-certificate = { path = "./pallets/certificate", default-features = false }
 pallet-identity = { path = "./pallets/identity", default-features = false }
+pallet-keystore = { path = "./pallets/keystore", default-features = false }
 clap = { version = "4.5.13" }
 frame-benchmarking-cli = { version = "47.0.0", default-features = false }
 frame-metadata-hash-extension = { version = "0.8.0", default-features = false }
