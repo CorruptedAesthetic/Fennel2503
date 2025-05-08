@@ -273,6 +273,21 @@ impl pallet_infostratus::Config for Runtime {
     type LockPrice = InfostratusLockPrice;
 }
 
+parameter_types! {
+    pub const SignalLockId: [u8; 8] = *b"signallk";
+    pub const SignalLockPrice: u32 = 1_000_000_000; // set as needed
+    pub const SignalMaxSize: u32 = 64; // adjust as needed
+}
+
+impl pallet_signal::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_signal::weights::SubstrateWeight<Runtime>;
+    type Currency = pallet_balances::Pallet<Runtime>;
+    type LockId = SignalLockId;
+    type LockPrice = SignalLockPrice;
+    type MaxSize = SignalMaxSize;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
 pub mod runtime {
@@ -333,6 +348,9 @@ pub mod runtime {
 
 	#[runtime::pallet_index(13)]
 	pub type Infostratus = pallet_infostratus;
+
+	#[runtime::pallet_index(14)]
+	pub type Signal = pallet_signal;
 }
 
 // No need for explicit re-export as the module is now public
