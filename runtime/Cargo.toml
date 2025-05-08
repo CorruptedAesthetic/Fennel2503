@@ -33,6 +33,7 @@ pallet-transaction-payment.workspace = true
 pallet-session = { workspace = true }
 pallet-validator-manager = { workspace = true }
 pallet-certificate = { workspace = true }
+pallet-identity = { workspace = true }
 scale-info = { features = ["derive", "serde"], workspace = true }
 serde_json = { workspace = true, default-features = false, features = ["alloc"] }
 sp-api.workspace = true
@@ -77,6 +78,7 @@ std = [
 	"pallet-session/std",
 	"pallet-validator-manager/std",
 	"pallet-certificate/std",
+	"pallet-identity/std",
 	"scale-info/std",
 	"serde_json/std",
 	"sp-api/std",
