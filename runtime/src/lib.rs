@@ -253,6 +253,19 @@ impl pallet_identity::Config for Runtime {
     type MaxSize = ConstU32<64>; // Adjust as needed for your use case
 }
 
+// Implement the Config trait for the keystore pallet in the runtime
+impl pallet_keystore::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_keystore::weights::SubstrateWeight<Runtime>;
+    type MaxSize = ConstU32<64>; // Adjust as needed for your use case
+}
+
+// Infostratus Pallet Configuration
+impl pallet_infostratus::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_infostratus::weights::SubstrateWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 #[frame_support::runtime]
 pub mod runtime {
@@ -305,9 +318,15 @@ pub mod runtime {
 	#[runtime::pallet_index(10)]
 	pub type Certificate = pallet_certificate;
 	
-	// Add the identity pallet to the runtime with a unique index
 	#[runtime::pallet_index(11)]
 	pub type Identity = pallet_identity;
+	
+	#[runtime::pallet_index(12)]
+	pub type Keystore = pallet_keystore;
+
+	// Add Infostratus to construct_runtime! macro
+	#[runtime::pallet_index(13)]
+	pub type Infostratus = pallet_infostratus;
 }
 
 // No need for explicit re-export as the module is now public

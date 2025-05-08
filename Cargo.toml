@@ -12,7 +12,8 @@ members = [
     "pallets/validator-manager",
     "pallets/certificate",
     "pallets/identity",
-    "pallets/keystore", 
+    "pallets/keystore",
+    "pallets/infostratus", 
     "runtime",
 ]
 resolver = "2"
