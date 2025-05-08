@@ -9601,6 +9601,7 @@ dependencies = [
  "frame-try-runtime",
  "pallet-aura",
  "pallet-balances",
+ "pallet-certificate",
  "pallet-grandpa",
  "pallet-session",
  "pallet-sudo",
