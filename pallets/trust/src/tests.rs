@@ -12,7 +12,7 @@ fn test_set_trust_parameter() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
 			0
 		));
-		System::assert_last_event(crate::Event::TrustParameterSet(1).into());
+		System::assert_last_event(crate::Event::TrustParameterSet { who: 1 }.into());
 	});
 }
 
@@ -21,7 +21,7 @@ fn issue_trust() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(TrustModule::issue_trust(RuntimeOrigin::signed(1), 1));
-		System::assert_last_event(crate::Event::TrustIssued(1, 1).into());
+		System::assert_last_event(crate::Event::TrustIssued { issuer: 1, subject: 1 }.into());
 		assert_eq!(TrustModule::get_current_trust_count(), 1);
 	});
 }

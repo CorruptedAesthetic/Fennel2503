@@ -91,33 +91,21 @@ pub mod pallet {
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
-        /// Announce a new identity to the network.
         IdentityCreated {
-            /// The ID number of the identity.
             identity_id: u32,
-            /// The owning AccountId.
             owner: T::AccountId,
         },
-        /// Announce that an identity has been revoked.
         IdentityRevoked {
-            /// The ID number of the identity.
             identity_id: u32,
-            /// The owning AccountId.
             owner: T::AccountId,
         },
-        /// Announce that an identity has been updated.
         IdentityUpdated {
-            /// The ID number of the identity.
             identity_id: u32,
-            /// The owning AccountId.
             owner: T::AccountId,
         },
-        /// Announce when an identity has broadcast a new key as an event.
-        EncryptionKeyIssued(T::AccountId),
-        /// Announce when an identity has set a key as revoked.
-        KeyRevoked(BoundedVec<u8, T::MaxSize>, T::AccountId),
-        /// Announce that a key exists.
-        KeyAnnounced(BoundedVec<u8, T::MaxSize>, T::AccountId),
+        EncryptionKeyIssued { who: T::AccountId },
+        KeyRevoked { key: BoundedVec<u8, T::MaxSize>, who: T::AccountId },
+        KeyAnnounced { key: BoundedVec<u8, T::MaxSize>, who: T::AccountId },
     }
 
     #[pallet::error]
@@ -144,63 +132,37 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        /// Create a new identity owned by origin.
         #[pallet::weight(T::WeightInfo::create_identity())]
         #[pallet::call_index(0)]
-        pub fn create_identity(origin: OriginFor<T>) -> DispatchResult {
+        pub fn create_identity(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
             let current_id: u32 = <IdentityNumber<T>>::get();
             <IdentityNumber<T>>::try_mutate(|current_id| -> DispatchResult {
-                *current_id =
-                    current_id.checked_add(One::one()).ok_or(Error::<T>::StorageOverflow)?;
+                *current_id = current_id.checked_add(One::one()).ok_or(Error::<T>::StorageOverflow)?;
                 Ok(())
             })?;
             let new_id: u32 = <IdentityNumber<T>>::get();
-
-            // Ensure that the index current_id isn't already in use.
             ensure!(!<IdentityList<T>>::contains_key(&current_id), Error::<T>::StorageOverflow);
-
             <IdentityList<T>>::try_mutate(&current_id, |owner| -> DispatchResult {
                 *owner = Some(who.clone());
                 Ok(())
             })?;
-
             <IdentityNumber<T>>::put(new_id);
-            Self::deposit_event(Event::IdentityCreated {
-                identity_id: current_id,
-                owner: who.clone(),
-            });
-
-            Ok(())
+            Self::deposit_event(Event::IdentityCreated { identity_id: current_id, owner: who.clone() });
+            Ok(().into())
         }
-
-        /// Revokes the identity with ID number identity_id, as long as the identity is owned by
-        /// origin.
         #[pallet::weight(T::WeightInfo::revoke_identity())]
         #[pallet::call_index(1)]
-        pub fn revoke_identity(origin: OriginFor<T>, identity_id: u32) -> DispatchResult {
+        pub fn revoke_identity(origin: OriginFor<T>, identity_id: u32) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
-
-            // Make sure the identity is owned by the sender.
-            ensure!(
-                Self::is_identity_owned_by_sender(&who, &identity_id),
-                Error::<T>::IdentityNotOwned
-            );
-
+            ensure!(Self::is_identity_owned_by_sender(&who, &identity_id), Error::<T>::IdentityNotOwned);
             <IdentityList<T>>::try_mutate(&identity_id, |owner| -> DispatchResult {
                 *owner = None;
                 Ok(())
             })?;
-
-            Self::deposit_event(Event::IdentityRevoked {
-                identity_id: identity_id,
-                owner: who.clone(),
-            });
-
-            Ok(())
+            Self::deposit_event(Event::IdentityRevoked { identity_id, owner: who.clone() });
+            Ok(().into())
         }
-
-        /// Add a new identity trait to identity_id with key/value.
         #[pallet::weight(T::WeightInfo::add_or_update_identity_trait())]
         #[pallet::call_index(2)]
         pub fn add_or_update_identity_trait(
@@ -208,96 +170,61 @@ pub mod pallet {
             identity_id: u32,
             key: BoundedVec<u8, T::MaxSize>,
             value: BoundedVec<u8, T::MaxSize>,
-        ) -> DispatchResult {
+        ) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
-
-            ensure!(
-                Self::is_identity_owned_by_sender(&who, &identity_id),
-                Error::<T>::IdentityNotOwned
-            );
-
+            ensure!(Self::is_identity_owned_by_sender(&who, &identity_id), Error::<T>::IdentityNotOwned);
             <IdentityTraitList<T>>::try_mutate(identity_id, key, |v| -> DispatchResult {
                 *v = value;
                 Ok(())
             })?;
-
-            Self::deposit_event(Event::IdentityUpdated {
-                identity_id: identity_id,
-                owner: who.clone(),
-            });
-
-            Ok(())
+            Self::deposit_event(Event::IdentityUpdated { identity_id, owner: who.clone() });
+            Ok(().into())
         }
-
-        /// Remove an identity trait named by trait_name from the identity with ID identity_id.
         #[pallet::weight(T::WeightInfo::remove_identity_trait())]
         #[pallet::call_index(3)]
         pub fn remove_identity_trait(
             origin: OriginFor<T>,
             identity_id: u32,
             key: BoundedVec<u8, T::MaxSize>,
-        ) -> DispatchResult {
+        ) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
-
-            ensure!(
-                Self::is_identity_owned_by_sender(&who, &identity_id),
-                Error::<T>::IdentityNotOwned
-            );
-
+            ensure!(Self::is_identity_owned_by_sender(&who, &identity_id), Error::<T>::IdentityNotOwned);
             <IdentityTraitList<T>>::remove(identity_id, key);
-            Self::deposit_event(Event::IdentityUpdated {
-                identity_id: identity_id,
-                owner: who.clone(),
-            });
-
-            Ok(())
+            Self::deposit_event(Event::IdentityUpdated { identity_id, owner: who.clone() });
+            Ok(().into())
         }
-
         #[pallet::weight(T::WeightInfo::announce_key())]
         #[pallet::call_index(4)]
         pub fn announce_key(
             origin: OriginFor<T>,
             fingerprint: BoundedVec<u8, T::MaxSize>,
             location: BoundedVec<u8, T::MaxSize>,
-        ) -> DispatchResult {
+        ) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
-
             ensure!(!<IssuedKeys<T>>::contains_key(&who, &fingerprint), Error::<T>::KeyExists);
-
             <IssuedKeys<T>>::insert(&who, &fingerprint, &location);
-
-            Self::deposit_event(Event::KeyAnnounced(fingerprint, who));
-            Ok(())
+            Self::deposit_event(Event::KeyAnnounced { key: fingerprint, who });
+            Ok(().into())
         }
-
-        /// If a key needs to be removed from circulation, this extrinsic will handle deleting it
-        /// and informing the network.
         #[pallet::weight(T::WeightInfo::revoke_key())]
         #[pallet::call_index(5)]
         pub fn revoke_key(
             origin: OriginFor<T>,
             key_index: BoundedVec<u8, T::MaxSize>,
-        ) -> DispatchResult {
+        ) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
-
             ensure!(<IssuedKeys<T>>::contains_key(&who, &key_index), Error::<T>::KeyDoesNotExist);
-
             <IssuedKeys<T>>::remove(&who, &key_index);
-
-            Self::deposit_event(Event::KeyRevoked(key_index, who));
-            Ok(())
+            Self::deposit_event(Event::KeyRevoked { key: key_index, who });
+            Ok(().into())
         }
-
-        /// Announces an encryption key to the network.
         #[pallet::weight(T::WeightInfo::issue_encryption_key())]
         #[pallet::call_index(6)]
-        pub fn issue_encryption_key(origin: OriginFor<T>, key: [u8; 32]) -> DispatchResult {
+        pub fn issue_encryption_key(origin: OriginFor<T>, key: [u8; 32]) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
-
             <IssuedEncryptionKeys<T>>::insert(&who, key);
-
-            Self::deposit_event(Event::EncryptionKeyIssued(who));
-            Ok(())
+            Self::deposit_event(Event::EncryptionKeyIssued { who });
+            Ok(().into())
         }
     }
 }

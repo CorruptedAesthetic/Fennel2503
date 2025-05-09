@@ -25,6 +25,36 @@ mod benchmarks {
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	#[benchmark]
+	fn send_submission() -> Result<(), BenchmarkError> {
+		let caller = get_origin::<T>("Spock");
+		let caller_account: T::AccountId = get_account::<T>("Spock");
+		let recipient = get_account::<T>("Montgomery");
+		T::Currency::make_free_balance_be(&caller_account, BalanceOf::<T>::max_value());
+
+		#[extrinsic_call]
+		_(caller, recipient.clone());
+
+		assert!(SubmissionsList::<T>::contains_key(caller_account, recipient));
+		Ok(())
+	}
+
+	#[benchmark]
+	fn revoke_submission() -> Result<(), BenchmarkError> {
+		let caller = get_origin::<T>("Spock");
+		let caller_account: T::AccountId = get_account::<T>("Spock");
+		let recipient = get_account::<T>("Montgomery");
+		T::Currency::make_free_balance_be(&caller_account, BalanceOf::<T>::max_value());
+		// Use direct call for setup, not the macro shorthand
+		Infostratus::<T>::send_submission(caller.clone().into(), recipient.clone())?;
+
+		#[extrinsic_call]
+		_(caller, recipient.clone());
+
+		assert!(SubmissionsList::<T>::contains_key(caller_account, recipient));
+		Ok(())
+	}
+
+	#[benchmark]
 	fn create_submission_entry() -> Result<(), BenchmarkError> {
 		let caller = get_origin::<T>("Spock");
 		let caller_account: T::AccountId = get_account::<T>("Spock");
@@ -44,7 +74,7 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn create_submission_entry_heavy_storage() -> Result<(), BenchmarkError> {
+	fn create_submission_entry_heavy_storage(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
 		let caller = get_origin::<T>("Spock");
 		let caller_account: T::AccountId = get_account::<T>("Spock");
 		let target =
@@ -53,7 +83,7 @@ mod benchmarks {
 
 		T::Currency::make_free_balance_be(&caller_account, BalanceOf::<T>::max_value());
 
-		for i in 0..100_000 {
+		for i in 0..m {
 			let loop_target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(
 				format!("TEST{}", i).as_bytes().to_vec(),
 			)
@@ -100,7 +130,7 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn request_submission_assignment_heavy_storage() -> Result<(), BenchmarkError> {
+	fn request_submission_assignment_heavy_storage(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
 		let caller = get_origin::<T>("Leonard");
 		let caller_account: T::AccountId = get_account::<T>("Leonard");
 		let second_caller = get_origin::<T>("Spock");
@@ -114,7 +144,7 @@ mod benchmarks {
 
 		Infostratus::<T>::create_submission_entry(caller.clone().into(), target.clone())?;
 
-		for i in 0..100_000 {
+		for i in 0..m {
 			let loop_target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(
 				format!("TEST{}", i).as_bytes().to_vec(),
 			)
@@ -122,7 +152,7 @@ mod benchmarks {
 			Infostratus::<T>::create_submission_entry(caller.clone().into(), loop_target)?;
 		}
 
-		for i in 0..100_000 {
+		for i in 0..m {
 			let loop_target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(
 				format!("TEST{}", i).as_bytes().to_vec(),
 			)

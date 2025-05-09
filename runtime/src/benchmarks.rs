@@ -97,4 +97,11 @@ frame_benchmarking::define_benchmarks!(
 	[pallet_timestamp, Timestamp]
 	[pallet_sudo, Sudo]
 	[pallet_template, Template]
+	[pallet_validator_manager, ValidatorManager]
+	[pallet_certificate, Certificate]
+	[pallet_identity, Identity]
+	[pallet_infostratus, Infostratus]
+	[pallet_keystore, Keystore]
+	[pallet_signal, Signal]
+	[pallet_trust, Trust]
 );

@@ -54,10 +54,10 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn revoke_identity_heavy_storage() -> Result<(), BenchmarkError> {
+	fn revoke_identity_heavy_storage(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
 		let anakin = get_origin::<T>("Anakin");
 
-		for _ in 0..1000 {
+		for _ in 0..m {
 			Identity::<T>::create_identity(anakin.clone().into())?;
 		}
 
@@ -110,12 +110,12 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn add_or_update_many_identity_traits() -> Result<(), BenchmarkError> {
+	fn add_or_update_many_identity_traits(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
 		let anakin = get_origin::<T>("Anakin");
 		let identity_index: u32 = IdentityNumber::<T>::get();
 		Identity::<T>::create_identity(anakin.clone().into())?;
 
-		for i in 0..100_000 {
+		for i in 0..m {
 			let name: BoundedVec<u8, T::MaxSize> =
 				format!("name{}", i).as_bytes().to_vec().try_into().unwrap();
 			let value: BoundedVec<u8, T::MaxSize> =
@@ -167,12 +167,12 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn remove_identity_trait_heavy_storage() -> Result<(), BenchmarkError> {
+	fn remove_identity_trait_heavy_storage(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
 		let anakin = get_origin::<T>("Anakin");
 		let identity_index: u32 = IdentityNumber::<T>::get();
 		Identity::<T>::create_identity(anakin.clone().into())?;
 
-		for i in 0..100_000 {
+		for i in 0..m {
 			let name: BoundedVec<u8, T::MaxSize> =
 				format!("name{}", i).as_bytes().to_vec().try_into().unwrap();
 			let value: BoundedVec<u8, T::MaxSize> =

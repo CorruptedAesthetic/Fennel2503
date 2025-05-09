@@ -28,7 +28,7 @@ mod benchmarks {
 		_(RawOrigin::Signed(caller.clone()), target.clone(), 0);
 
 		assert_eq!(TrustParameterList::<T>::get(&caller, &target), 0);
-		assert_last_event::<T>(Event::TrustParameterSet(caller).into());
+		assert_last_event::<T>(Event::TrustParameterSet { who: caller }.into());
 
 		Ok(())
 	}
@@ -48,8 +48,8 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn issue_trust_repeatedly() -> Result<(), BenchmarkError> {
-		for i in 0..1000 {
+	fn issue_trust_repeatedly(m: Linear<0, 1000>) -> Result<(), BenchmarkError> {
+		for i in 0..m {
 			let target: T::AccountId = benchmark_account("target", i, 0);
 			let caller: T::AccountId = benchmark_account("caller", i, 0);
 			Trust::<T>::issue_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
@@ -61,7 +61,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		issue_trust(RawOrigin::Signed(caller.clone()), target.clone());
 
-		assert_eq!(CurrentIssued::<T>::get(), 1001);
+		assert_eq!(CurrentIssued::<T>::get(), m + 1);
 		assert!(TrustIssuance::<T>::contains_key(caller.clone(), target.clone()));
 
 		Ok(())
@@ -82,14 +82,14 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn revoke_trust_from_heavy_storage() -> Result<(), BenchmarkError> {
-		for i in 0..100_000 {
+	fn revoke_trust_from_heavy_storage(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
+		for i in 0..m {
 			let target: T::AccountId = benchmark_account("target", i, 0);
 			let caller: T::AccountId = benchmark_account("caller", i, 0);
 			Trust::<T>::issue_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
 		}
 
-		for i in 0..100_000 {
+		for i in 0..m {
 			let target: T::AccountId = benchmark_account("target", 100_000 + i, 0);
 			let caller: T::AccountId = benchmark_account("caller", 100_000 + i, 0);
 			Trust::<T>::revoke_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
@@ -101,7 +101,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		revoke_trust(RawOrigin::Signed(caller.clone()), target.clone());
 
-		assert_eq!(CurrentRevoked::<T>::get(), 100_001);
+		assert_eq!(CurrentRevoked::<T>::get(), m + 1);
 		assert!(TrustRevocation::<T>::contains_key(caller.clone(), target.clone()));
 
 		Ok(())
@@ -123,8 +123,8 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn remove_trust_from_heavy_storage() -> Result<(), BenchmarkError> {
-		for i in 0..1000 {
+	fn remove_trust_from_heavy_storage(m: Linear<0, 1000>) -> Result<(), BenchmarkError> {
+		for i in 0..m {
 			let target: T::AccountId = benchmark_account("target", i, 0);
 			let caller: T::AccountId = benchmark_account("caller", i, 0);
 			Trust::<T>::issue_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
@@ -137,7 +137,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		remove_trust(RawOrigin::Signed(caller.clone()), target.clone());
 
-		assert_eq!(CurrentIssued::<T>::get(), 1000);
+		assert_eq!(CurrentIssued::<T>::get(), m);
 		assert!(!TrustIssuance::<T>::contains_key(caller.clone(), target.clone()));
 
 		Ok(())
@@ -158,8 +158,8 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn request_trust_repeatedly() -> Result<(), BenchmarkError> {
-		for i in 0..1000 {
+	fn request_trust_repeatedly(m: Linear<0, 1000>) -> Result<(), BenchmarkError> {
+		for i in 0..m {
 			let target: T::AccountId = benchmark_account("target", i, 0);
 			let caller: T::AccountId = benchmark_account("caller", i, 0);
 			Trust::<T>::request_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
@@ -171,7 +171,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		request_trust(RawOrigin::Signed(caller.clone()), target.clone());
 
-		assert_eq!(CurrentRequests::<T>::get(), 1001);
+		assert_eq!(CurrentRequests::<T>::get(), m + 1);
 		assert!(TrustRequestList::<T>::contains_key(caller.clone(), target.clone()));
 
 		Ok(())
@@ -193,8 +193,8 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn remove_revoked_trust_heavy_storage() -> Result<(), BenchmarkError> {
-		for i in 0..1000 {
+	fn remove_revoked_trust_heavy_storage(m: Linear<0, 1000>) -> Result<(), BenchmarkError> {
+		for i in 0..m {
 			let target: T::AccountId = benchmark_account("target", i, 0);
 			let caller: T::AccountId = benchmark_account("caller", i, 0);
 			Trust::<T>::revoke_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
@@ -208,7 +208,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		remove_revoked_trust(RawOrigin::Signed(caller.clone()), target.clone());
 
-		assert_eq!(CurrentRevoked::<T>::get(), 1000);
+		assert_eq!(CurrentRevoked::<T>::get(), m);
 		assert!(!TrustRevocation::<T>::contains_key(caller.clone(), target.clone()));
 
 		Ok(())
@@ -230,8 +230,8 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn cancel_trust_request_heavy_storage() -> Result<(), BenchmarkError> {
-		for i in 0..1000 {
+	fn cancel_trust_request_heavy_storage(m: Linear<0, 1000>) -> Result<(), BenchmarkError> {
+		for i in 0..m {
 			let target: T::AccountId = benchmark_account("target", i, 0);
 			let caller: T::AccountId = benchmark_account("caller", i, 0);
 			Trust::<T>::request_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
@@ -243,7 +243,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		cancel_trust_request(RawOrigin::Signed(caller.clone()), target.clone());
 
-		assert_eq!(CurrentRequests::<T>::get(), 999);
+		assert_eq!(CurrentRequests::<T>::get(), m.saturating_sub(1));
 		assert!(!TrustRequestList::<T>::contains_key(caller.clone(), target.clone()));
 
 		Ok(())

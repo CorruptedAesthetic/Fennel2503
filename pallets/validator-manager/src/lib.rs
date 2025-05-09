@@ -24,7 +24,7 @@ pub mod tests;
 pub mod weights;
 
 #[cfg(feature = "runtime-benchmarks")]
-pub mod benchmarking;
+mod benchmarking;
 
 type Session<T> = pallet_session::Pallet<T>;
 
@@ -281,4 +281,4 @@ impl<T: Config> pallet_session::historical::SessionManager<T::ValidatorId, ()> f
     fn end_session(end_index: SessionIndex) {
         <Self as pallet_session::SessionManager<_>>::end_session(end_index)
     }
-} 
+}

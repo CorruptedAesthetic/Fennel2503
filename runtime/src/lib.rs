@@ -263,6 +263,7 @@ impl pallet_keystore::Config for Runtime {
 parameter_types! {
     pub const InfostratusLockId: [u8; 8] = *b"infosloc";
     pub const InfostratusLockPrice: u32 = 1_000_000_000; // set as needed
+    pub const InfostratusMaxSize: u32 = 64; // Adjust as needed
 }
 
 impl pallet_infostratus::Config for Runtime {
@@ -271,6 +272,7 @@ impl pallet_infostratus::Config for Runtime {
     type Currency = pallet_balances::Pallet<Runtime>;
     type LockId = InfostratusLockId;
     type LockPrice = InfostratusLockPrice;
+    type MaxSize = InfostratusMaxSize;
 }
 
 parameter_types! {

@@ -13,7 +13,7 @@ fn test_set_signal_parameter() {
 			0,
 		)
 		.unwrap();
-		System::assert_last_event(crate::Event::SignalParameterSet(1).into());
+		System::assert_last_event(crate::Event::SignalParameterSet { who: 1 }.into());
 	});
 }
 
@@ -28,8 +28,8 @@ fn test_send_rating_signal() {
 			0,
 		)
 		.unwrap();
-		System::assert_last_event(crate::Event::RatingSignalSent(1).into());
-		System::assert_last_event(crate::Event::RatingSignalSent(1).into());
+		System::assert_last_event(crate::Event::RatingSignalSent { who: 1 }.into());
+		System::assert_last_event(crate::Event::RatingSignalSent { who: 1 }.into());
 	});
 }
 
