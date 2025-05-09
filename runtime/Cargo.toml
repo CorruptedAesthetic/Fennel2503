@@ -119,6 +119,13 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
+	"pallet-validator-manager/runtime-benchmarks",
+	"pallet-certificate/runtime-benchmarks",
+	"pallet-identity/runtime-benchmarks",
+	"pallet-keystore/runtime-benchmarks",
+	"pallet-infostratus/runtime-benchmarks",
+	"pallet-signal/runtime-benchmarks",
+	"pallet-trust/runtime-benchmarks",
 ]
 
 try-runtime = [
