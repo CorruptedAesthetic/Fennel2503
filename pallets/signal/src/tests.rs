@@ -1,7 +1,6 @@
 use crate::{mock::*, Error};
-use frame_support::{assert_noop, assert_ok, traits::Currency};
+use frame_support::{assert_noop, assert_ok, traits::Currency, BoundedVec};
 use sp_core::ConstU32;
-use sp_runtime::BoundedVec;
 
 #[test]
 fn test_set_signal_parameter() {
@@ -28,7 +27,6 @@ fn test_send_rating_signal() {
 			0,
 		)
 		.unwrap();
-		System::assert_last_event(crate::Event::RatingSignalSent { who: 1 }.into());
 		System::assert_last_event(crate::Event::RatingSignalSent { who: 1 }.into());
 	});
 }
@@ -63,7 +61,7 @@ fn test_update_rating_signal() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
 			1
 		));
-		System::assert_last_event(crate::Event::RatingSignalUpdated(1).into());
+		System::assert_last_event(crate::Event::RatingSignalUpdated { who: 1 }.into());
 	});
 }
 
@@ -78,13 +76,13 @@ fn test_revoke_rating_signal() {
 			0,
 		)
 		.unwrap();
-		System::assert_last_event(crate::Event::RatingSignalSent(1).into());
+		System::assert_last_event(crate::Event::RatingSignalSent { who: 1 }.into());
 		SignalModule::revoke_rating_signal(
 			RuntimeOrigin::signed(1),
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
 		)
 		.unwrap();
-		System::assert_last_event(crate::Event::RatingSignalRevoked(1).into());
+		System::assert_last_event(crate::Event::RatingSignalRevoked { who: 1 }.into());
 	});
 }
 
@@ -112,10 +110,10 @@ fn test_send_signal() {
 		)
 		.unwrap();
 		System::assert_last_event(
-			crate::Event::SignalSent(
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-				1,
-			)
+			crate::Event::SignalSent {
+				signal: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+				who: 1,
+			}
 			.into(),
 		);
 	});
@@ -132,11 +130,11 @@ fn test_send_service_signal() {
 		)
 		.unwrap();
 		System::assert_last_event(
-			crate::Event::ServiceSignalSent(
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-				1,
-			)
+			crate::Event::ServiceSignalSent {
+				service_identifier: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+				url: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+				who: 1,
+			}
 			.into(),
 		);
 	});

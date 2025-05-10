@@ -13,11 +13,10 @@ fn test_create_submission_entry() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap()
 		));
 		System::assert_last_event(
-			crate::Event::SubmissionSent(
-				1,
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-			)
-			.into(),
+			crate::Event::SubmissionSent {
+				who: 1,
+				resource_location: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+			}.into(),
 		);
 	});
 }
@@ -32,11 +31,10 @@ fn test_create_existing_submission() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap()
 		));
 		System::assert_last_event(
-			crate::Event::SubmissionSent(
-				1,
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-			)
-			.into(),
+			crate::Event::SubmissionSent {
+				who: 1,
+				resource_location: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+			}.into(),
 		);
 		assert_noop!(
 			Infostratus::create_submission_entry(
@@ -59,11 +57,10 @@ fn test_request_submission_assignment() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap()
 		));
 		System::assert_last_event(
-			crate::Event::SubmissionSent(
-				1,
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-			)
-			.into(),
+			crate::Event::SubmissionSent {
+				who: 1,
+				resource_location: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+			}.into(),
 		);
 		assert_ok!(Infostratus::request_submission_assignment(
 			RuntimeOrigin::signed(2),
@@ -71,11 +68,10 @@ fn test_request_submission_assignment() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap()
 		));
 		System::assert_last_event(
-			crate::Event::SubmissionAssigned(
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-				2,
-			)
-			.into(),
+			crate::Event::SubmissionAssigned {
+				resource_location: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+				who: 2,
+			}.into(),
 		);
 	});
 }
@@ -91,11 +87,10 @@ fn test_try_assign_nonexistent_submission() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap()
 		));
 		System::assert_last_event(
-			crate::Event::SubmissionSent(
-				1,
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-			)
-			.into(),
+			crate::Event::SubmissionSent {
+				who: 1,
+				resource_location: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+			}.into(),
 		);
 		assert_noop!(
 			Infostratus::request_submission_assignment(
@@ -120,11 +115,10 @@ fn test_request_submission_assignment_already_assigned() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap()
 		));
 		System::assert_last_event(
-			crate::Event::SubmissionSent(
-				1,
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-			)
-			.into(),
+			crate::Event::SubmissionSent {
+				who: 1,
+				resource_location: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+			}.into(),
 		);
 		assert_ok!(Infostratus::request_submission_assignment(
 			RuntimeOrigin::signed(2),
@@ -132,11 +126,10 @@ fn test_request_submission_assignment_already_assigned() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap()
 		));
 		System::assert_last_event(
-			crate::Event::SubmissionAssigned(
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-				2,
-			)
-			.into(),
+			crate::Event::SubmissionAssigned {
+				resource_location: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+				who: 2,
+			}.into(),
 		);
 		assert_noop!(
 			Infostratus::request_submission_assignment(
@@ -159,11 +152,10 @@ fn test_request_submission_assignment_own_submission() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap()
 		));
 		System::assert_last_event(
-			crate::Event::SubmissionSent(
-				1,
-				BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
-			)
-			.into(),
+			crate::Event::SubmissionSent {
+				who: 1,
+				resource_location: BoundedVec::<u8, ConstU32<1024>>::try_from("TEST".as_bytes().to_vec()).unwrap(),
+			}.into(),
 		);
 		assert_noop!(
 			Infostratus::request_submission_assignment(

@@ -7,7 +7,7 @@ fn issue_identity() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(1)));
-		System::assert_last_event(crate::Event::IdentityCreated(0, 1).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 1 }.into());
 	});
 }
 
@@ -16,11 +16,11 @@ fn issue_identity_increments_by_number_of_times_called() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(1)));
-		System::assert_last_event(crate::Event::IdentityCreated(0, 1).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 1 }.into());
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(2)));
-		System::assert_last_event(crate::Event::IdentityCreated(1, 2).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 2 }.into());
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(3)));
-		System::assert_last_event(crate::Event::IdentityCreated(2, 3).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 2, owner: 3 }.into());
 
 		assert_eq!(IdentityModule::identity_number(), 3);
 	});
@@ -31,9 +31,9 @@ fn issue_identity_registers_different_account_ids_with_new_identities() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(200)));
-		System::assert_last_event(crate::Event::IdentityCreated(1, 200).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 200 }.into());
 
 		assert_eq!(IdentityModule::identity_list(0).unwrap(), 300);
 		assert_eq!(IdentityModule::identity_list(1).unwrap(), 200);
@@ -45,9 +45,9 @@ fn issue_identity_registers_same_account_id_with_multiple_new_identities() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated(1, 300).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 300 }.into());
 
 		assert_eq!(IdentityModule::identity_list(0).unwrap(), 300);
 		assert_eq!(IdentityModule::identity_list(1).unwrap(), 300);
@@ -59,9 +59,9 @@ fn revoke_identity() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(IdentityModule::revoke_identity(RuntimeOrigin::signed(300), 0));
-		System::assert_last_event(crate::Event::IdentityRevoked(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
 	});
 }
 
@@ -70,14 +70,14 @@ fn revoke_identity_multiple_from_different_accounts() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(200)));
-		System::assert_last_event(crate::Event::IdentityCreated(1, 200).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 200 }.into());
 
 		assert_ok!(IdentityModule::revoke_identity(RuntimeOrigin::signed(300), 0));
-		System::assert_last_event(crate::Event::IdentityRevoked(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
 		assert_ok!(IdentityModule::revoke_identity(RuntimeOrigin::signed(200), 1));
-		System::assert_last_event(crate::Event::IdentityRevoked(1, 200).into());
+		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 1, owner: 200 }.into());
 	});
 }
 
@@ -86,14 +86,14 @@ fn revoke_identity_multiple_from_same_account() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated(1, 300).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 300 }.into());
 
 		assert_ok!(IdentityModule::revoke_identity(RuntimeOrigin::signed(300), 1));
-		System::assert_last_event(crate::Event::IdentityRevoked(1, 300).into());
+		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 1, owner: 300 }.into());
 		assert_ok!(IdentityModule::revoke_identity(RuntimeOrigin::signed(300), 0));
-		System::assert_last_event(crate::Event::IdentityRevoked(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
 	});
 }
 
@@ -116,7 +116,7 @@ fn add_or_update_identity_trait() {
 
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(account_id)));
 		System::assert_last_event(
-			crate::Event::IdentityCreated(0, account_id.try_into().unwrap()).into(),
+			crate::Event::IdentityCreated { identity_id: 0, owner: account_id.try_into().unwrap() }.into(),
 		);
 
 		let luke = BoundedVec::<u8, ConstU32<1024>>::try_from("Luke Skywalker".as_bytes().to_vec())
@@ -128,7 +128,7 @@ fn add_or_update_identity_trait() {
 			luke.clone()
 		));
 		System::assert_last_event(
-			crate::Event::IdentityUpdated(0, account_id.try_into().unwrap()).into(),
+			crate::Event::IdentityUpdated { identity_id: 0, owner: account_id.try_into().unwrap() }.into(),
 		);
 		assert_eq!(IdentityModule::identity_trait_list(0, key.clone()), luke.clone());
 
@@ -142,7 +142,7 @@ fn add_or_update_identity_trait() {
 			anakin.clone()
 		));
 		System::assert_last_event(
-			crate::Event::IdentityUpdated(0, account_id.try_into().unwrap()).into(),
+			crate::Event::IdentityUpdated { identity_id: 0, owner: account_id.try_into().unwrap() }.into(),
 		);
 		assert_eq!(IdentityModule::identity_trait_list(0, key.clone()), anakin.clone());
 	});
@@ -153,7 +153,7 @@ fn remove_identity_trait() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(IdentityModule::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(IdentityModule::add_or_update_identity_trait(
 			RuntimeOrigin::signed(300),
 			0,
@@ -161,12 +161,12 @@ fn remove_identity_trait() {
 			BoundedVec::<u8, ConstU32<1024>>::try_from("Luke Skywalker".as_bytes().to_vec())
 				.unwrap()
 		));
-		System::assert_last_event(crate::Event::IdentityUpdated(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityUpdated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(IdentityModule::remove_identity_trait(
 			RuntimeOrigin::signed(300),
 			0,
 			BoundedVec::<u8, ConstU32<1024>>::try_from("name".as_bytes().to_vec()).unwrap()
 		));
-		System::assert_last_event(crate::Event::IdentityUpdated(0, 300).into());
+		System::assert_last_event(crate::Event::IdentityUpdated { identity_id: 0, owner: 300 }.into());
 	});
 }

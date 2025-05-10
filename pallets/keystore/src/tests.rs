@@ -1,7 +1,7 @@
 use crate::mock::*;
 use frame_support::assert_ok;
 use sp_core::ConstU32;
-use sp_runtime::BoundedVec;
+use frame_support::BoundedVec;
 
 #[test]
 fn test_issue_key() {

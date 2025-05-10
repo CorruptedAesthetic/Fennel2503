@@ -36,7 +36,7 @@ mod benchmarks {
 		T::Currency::make_free_balance_be(&caller_account, BalanceOf::<T>::max_value());
 
 		#[extrinsic_call]
-		create_submission_entry(caller, resource_location.clone());
+		_(caller, resource_location.clone());
 
 		assert!(SubmissionsList::<T>::contains_key(caller_account.clone(), resource_location.clone()));
 		assert_last_event::<T>(Event::SubmissionSent { who: caller_account, resource_location }.into());
@@ -52,7 +52,7 @@ mod benchmarks {
 		Infostratus::<T>::create_submission_entry(caller.clone().into(), resource_location.clone())?;
 
 		#[extrinsic_call]
-		request_submission_assignment(caller, caller_account.clone(), resource_location.clone());
+		_(caller, caller_account.clone(), resource_location.clone());
 
 		assert!(!SubmissionsList::<T>::contains_key(caller_account.clone(), resource_location.clone()));
 		assert_last_event::<T>(Event::SubmissionAssigned { resource_location, who: caller_account }.into());
@@ -97,7 +97,7 @@ mod benchmarks {
 		}
 
 		#[extrinsic_call]
-		Infostratus::<T>::create_submission_entry(caller, target.clone());
+		_(caller, target.clone());
 
 		let caller_account_id: T::AccountId = get_account::<T>("Spock");
 		assert!(SubmissionsList::<T>::contains_key(caller_account_id, target.clone()));
@@ -170,11 +170,7 @@ mod benchmarks {
 		}
 
 		#[extrinsic_call]
-		Infostratus::<T>::request_submission_assignment(
-			second_caller,
-			caller_account,
-			target.clone(),
-		);
+		_(second_caller, caller_account, target.clone());
 
 		let caller_account_id: T::AccountId = get_account::<T>("Leonard");
 		let second_caller_account_id: T::AccountId = get_account::<T>("Spock");

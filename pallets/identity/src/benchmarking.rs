@@ -70,7 +70,7 @@ mod benchmarks {
 		}
 
 		#[extrinsic_call]
-		revoke_identity(anakin.clone(), 301);
+		_(anakin.clone(), 301);
 
 		// Check that the identity no longer exists in the IdentityList.
 		assert!(!IdentityList::<T>::contains_key(301));
@@ -105,12 +105,7 @@ mod benchmarks {
 		Identity::<T>::create_identity(anakin.clone().into())?;
 
 		#[extrinsic_call]
-		add_or_update_identity_trait(
-			anakin.clone(),
-			identity_index.into(),
-			name.into(),
-			value.into(),
-		);
+		_(anakin.clone(), identity_index.into(), name.into(), value.into());
 
 		assert!(IdentityList::<T>::contains_key(identity_index));
 
@@ -144,7 +139,7 @@ mod benchmarks {
 		let value: BoundedVec<u8, T::MaxSize> = vec![0; 1000].try_into().unwrap();
 
 		#[extrinsic_call]
-		add_or_update_identity_trait(obiwan, new_identity_index.into(), name.into(), value.into());
+		_(obiwan, new_identity_index.into(), name.into(), value.into());
 
 		assert!(IdentityList::<T>::contains_key(new_identity_index));
 
@@ -197,7 +192,7 @@ mod benchmarks {
 		let name: BoundedVec<u8, T::MaxSize> = vec![0; 1000].try_into().unwrap();
 
 		#[extrinsic_call]
-		remove_identity_trait(anakin.clone(), identity_index.into(), name.into());
+		_(anakin.clone(), identity_index.into(), name.into());
 
 		assert!(IdentityList::<T>::contains_key(identity_index));
 
@@ -220,7 +215,7 @@ mod benchmarks {
 		)?;
 
 		#[extrinsic_call]
-		remove_identity_trait(anakin.clone(), identity_index.into(), name.into());
+		_(anakin.clone(), identity_index.into(), name.into());
 
 		assert!(IdentityList::<T>::contains_key(identity_index));
 
