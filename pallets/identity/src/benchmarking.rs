@@ -37,6 +37,16 @@ mod benchmarks {
         Ok(())
     }
 
+    #[benchmark(extra)]
+    fn revoke_identity_not_owned() -> Result<(), BenchmarkError> {
+        // Attempt to revoke a non-existent identity (should error early)
+        let caller: T::AccountId = whitelisted_caller();
+        let bogus_id = 999u32;
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), bogus_id);
+        Ok(())
+    }
+
     #[benchmark]
     fn add_or_update_identity_trait(l: Linear<1, T::MaxSize>) -> Result<(), BenchmarkError> {
         // Setup: create identity and prepare a key/value pair
