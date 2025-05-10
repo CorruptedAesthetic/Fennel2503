@@ -4,55 +4,102 @@ use crate as pallet_validator_manager;
 use crate::*;
 use frame_support::{
     parameter_types,
-    traits::{ConstU32, ConstU64, GenesisBuild, OneSessionHandler},
+    traits::{ConstU32, ConstU64, BuildGenesisConfig, OneSessionHandler},
 };
-// Use sp-io directly from the workspace
-use sp_io;
-use sp_core::{crypto::key_types::DUMMY, H256};
+use frame_system as system;
+use sp_core::H256;
 use sp_runtime::{
     impl_opaque_keys,
-    testing::{Header, UintAuthorityId},
-    traits::{BlakeTwo256, IdentityLookup, OpaqueKeys},
-    KeyTypeId,
+    testing::{Header, UintAuthorityId, TestXt},
+    traits::{BlakeTwo256, IdentityLookup},
+    AccountId32, BuildStorage, Perbill,
 };
+use pallet_session::{PeriodicSessions};
+use sp_std::prelude::*;
+use std::ops::{Deref, DerefMut};
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+// Define our own TestAccountId type which will be used as AccountId
+// This allows us to implement required traits directly
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Encode, Decode, MaxEncodedLen, TypeInfo)]
+pub struct TestAccountId(pub u64);
 
-// Configure a mock runtime to test the pallet.
+impl From<u64> for TestAccountId {
+    fn from(id: u64) -> Self {
+        TestAccountId(id)
+    }
+}
+
+impl From<UintAuthorityId> for TestAccountId {
+    fn from(id: UintAuthorityId) -> Self {
+        TestAccountId(id.0)
+    }
+}
+
+// Implement required traits for our TestAccountId to work as a system AccountId
+impl core::fmt::Display for TestAccountId {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl sp_std::str::FromStr for TestAccountId {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse::<u64>().map(TestAccountId).map_err(|_| ())
+    }
+}
+
+impl Default for TestAccountId {
+    fn default() -> Self {
+        TestAccountId(0)
+    }
+}
+
+impl_opaque_keys! {
+    pub struct MockSessionKeys {
+        pub dummy: UintAuthorityId,
+    }
+}
+
+type UncheckedExtrinsic = system::mocking::MockUncheckedExtrinsic<Test>;
+type Block = system::mocking::MockBlock<Test>;
+
 frame_support::construct_runtime!(
-    pub enum Test where
-        Block = Block,
-        NodeBlock = Block,
-        UncheckedExtrinsic = UncheckedExtrinsic,
-    {
-        System: frame_system,
-        ValidatorManager: pallet_validator_manager,
-        Session: pallet_session,
+    pub enum Test {
+        System: system::{Pallet, Call, Storage, Event<T>},
+        Session: pallet_session::{Pallet, Call, Storage, Event<T>},
+        ValidatorManager: pallet_validator_manager::{Pallet, Call, Storage, Event<T>},
     }
 );
 
 parameter_types! {
-    pub BlockWeights: frame_system::limits::BlockWeights =
-        frame_system::limits::BlockWeights::simple_max(frame_support::weights::Weight::from_parts(1024, 0));
+    pub const BlockHashCount: u64 = 250;
+    pub const MinAuthorities: u32 = 2;
+    pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights::simple_max(frame_support::weights::Weight::from_parts(1024, 0));
 }
 
-impl frame_system::Config for Test {
+// Helper functions for converting between types
+pub fn account_id_to_authority_id(account: TestAccountId) -> UintAuthorityId {
+    UintAuthorityId(account.0)
+}
+
+pub fn authority_id_to_account_id(authority: UintAuthorityId) -> TestAccountId {
+    TestAccountId(authority.0)
+}
+
+impl system::Config for Test {
     type BaseCallFilter = frame_support::traits::Everything;
     type BlockWeights = BlockWeights;
     type BlockLength = ();
     type DbWeight = ();
     type RuntimeOrigin = RuntimeOrigin;
     type RuntimeCall = RuntimeCall;
-    type Index = u64;
-    type BlockNumber = u64;
+    type RuntimeEvent = RuntimeEvent;
     type Hash = H256;
     type Hashing = BlakeTwo256;
-    type AccountId = u64;
+    type AccountId = TestAccountId;
     type Lookup = IdentityLookup<Self::AccountId>;
-    type Header = Header;
-    type RuntimeEvent = RuntimeEvent;
-    type BlockHashCount = ConstU64<250>;
+    type BlockHashCount = BlockHashCount;
     type Version = ();
     type PalletInfo = PalletInfo;
     type AccountData = ();
@@ -62,50 +109,68 @@ impl frame_system::Config for Test {
     type SS58Prefix = ();
     type OnSetCode = ();
     type MaxConsumers = ConstU32<16>;
+    type RuntimeTask = ();
+    type Nonce = u64;
+    type Block = Block;
+    type ExtensionsWeightInfo = ();
+    type SingleBlockMigrations = ();
+    type MultiBlockMigrator = ();
+    type PreInherents = ();
+    type PostInherents = ();
+    type PostTransactions = ();
 }
 
-impl_opaque_keys! {
-    pub struct MockSessionKeys {
-        pub dummy: UintAuthorityId,
-    }
-}
+// Note: UintAuthorityId already implements Clone and Copy 
+// in the sp_runtime::testing module
 
-impl From<UintAuthorityId> for MockSessionKeys {
-    fn from(dummy: UintAuthorityId) -> Self {
-        Self { dummy }
-    }
-}
-
+// We'll use a different approach - test keys
 parameter_types! {
-    pub const MinAuthorities: u32 = 2;
-    pub static ValidatorCount: u32 = 3;
+    pub const DisabledValidatorsThreshold: Perbill = Perbill::from_percent(33);
 }
 
+// TestSessionHandler with proper implementation
 pub struct TestSessionHandler;
-impl OneSessionHandler<u64> for TestSessionHandler {
+impl sp_runtime::BoundToRuntimeAppPublic for TestSessionHandler {
+    type Public = UintAuthorityId;
+}
+
+impl OneSessionHandler<TestAccountId> for TestSessionHandler {
     type Key = UintAuthorityId;
 
-    fn on_genesis_session<'a, I: 'a>(_: I)
+    fn on_genesis_session<'a, I: 'a>(_validators: I)
     where
-        I: Iterator<Item = (&'a u64, Self::Key)>,
+        I: Iterator<Item = (&'a TestAccountId, Self::Key)>,
     {
+        // Not needed for our tests
     }
 
-    fn on_new_session<'a, I: 'a>(_: bool, _: I, _: I)
+    fn on_new_session<'a, I: 'a>(_changed: bool, _validators: I, _queued_validators: I)
     where
-        I: Iterator<Item = (&'a u64, Self::Key)>,
+        I: Iterator<Item = (&'a TestAccountId, Self::Key)>,
     {
+        // Not needed for our tests
     }
 
-    fn on_disabled(_: u32) {}
+    fn on_disabled(_validator_index: u32) {
+        // Not needed for our tests
+    }
+}
+
+// Validator ID conversion handler
+pub struct ValidatorIdOf;
+impl sp_runtime::traits::Convert<TestAccountId, Option<UintAuthorityId>> for ValidatorIdOf {
+    fn convert(account: TestAccountId) -> Option<UintAuthorityId> {
+        // Simply convert the TestAccountId's u64 value to a UintAuthorityId
+        Some(UintAuthorityId(account.0))
+    }
 }
 
 impl pallet_session::Config for Test {
     type RuntimeEvent = RuntimeEvent;
-    type ValidatorId = u64;
-    type ValidatorIdOf = crate::ValidatorOf<Test>;
-    type ShouldEndSession = pallet_session::PeriodicSessions<ConstU64<1>, ConstU64<0>>;
-    type NextSessionRotation = pallet_session::PeriodicSessions<ConstU64<1>, ConstU64<0>>;
+    type ValidatorId = UintAuthorityId;
+    type ValidatorIdOf = ValidatorIdOf;
+    type ShouldEndSession = PeriodicSessions<ConstU64<1>, ConstU64<0>>;
+    type NextSessionRotation = PeriodicSessions<ConstU64<1>, ConstU64<0>>;
     type SessionManager = ValidatorManager;
     type SessionHandler = (TestSessionHandler,);
     type Keys = MockSessionKeys;
@@ -113,38 +178,19 @@ impl pallet_session::Config for Test {
     type DisablingStrategy = ();
 }
 
-pub struct PrivilegedAccount;
-impl frame_support::traits::EnsureOrigin<RuntimeOrigin> for PrivilegedAccount {
-    type Success = ();
-
-    fn try_origin(o: RuntimeOrigin) -> Result<Self::Success, RuntimeOrigin> {
-        match o {
-            RuntimeOrigin::signed(1) => Ok(()),
-            _ => Err(o),
-        }
-    }
-
-    #[cfg(feature = "runtime-benchmarks")]
-    fn successful_origin() -> RuntimeOrigin {
-        RuntimeOrigin::signed(1)
-    }
-}
-
 impl pallet_validator_manager::Config for Test {
     type RuntimeEvent = RuntimeEvent;
-    type PrivilegedOrigin = PrivilegedAccount;
+    type PrivilegedOrigin = frame_system::EnsureRoot<TestAccountId>;
     type MinAuthorities = MinAuthorities;
-    type ValidatorOf = pallet_session::historical::ValidatorOf<Self, u64>;
+    type ValidatorOf = ValidatorIdOf;
     type WeightInfo = ();
 }
 
 #[cfg(test)]
-// Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-    let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
-
+    let mut t = <system::GenesisConfig<Test> as BuildStorage>::build_storage(&system::GenesisConfig::default()).unwrap();
     pallet_validator_manager::GenesisConfig::<Test> {
-        initial_validators: vec![1, 2, 3],
+        initial_validators: vec![UintAuthorityId(1), UintAuthorityId(2), UintAuthorityId(3)],
     }
     .assimilate_storage(&mut t)
     .unwrap();
@@ -154,4 +200,4 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         System::set_block_number(1);
     });
     ext
-} 
+}

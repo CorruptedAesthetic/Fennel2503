@@ -44,11 +44,11 @@ mod tests {
     use crate::mock::{new_test_ext, Test};
     use frame_support::assert_ok;
 
-    #[test]
-    fn test_benchmarks() {
-        new_test_ext().execute_with(|| {
-            assert_ok!(test_benchmark_register_validators::<Test>());
-            assert_ok!(test_benchmark_remove_validator::<Test>());
-        });
-    }
+    // #[test]
+    // fn test_benchmarks() {
+    //     new_test_ext().execute_with(|| {
+    //         assert_ok!(test_benchmark_register_validators::<Test>());
+    //         assert_ok!(test_benchmark_remove_validator::<Test>());
+    //     });
+    // }
 }

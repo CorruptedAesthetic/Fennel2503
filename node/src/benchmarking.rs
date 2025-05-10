@@ -3,11 +3,11 @@
 //! Should only be used for benchmarking as it may break in other contexts.
 
 use crate::service::FullClient;
+use solochain_template_runtime as runtime;
 
-use runtime::{AccountId, Balance, BalancesCall, SystemCall};
+use solochain_template_runtime::{AccountId, Balance, BalancesCall, SystemCall};
 use sc_cli::Result;
 use sc_client_api::BlockBackend;
-use solochain_template_runtime as runtime;
 use sp_core::{Encode, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
 use sp_keyring::Sr25519Keyring;

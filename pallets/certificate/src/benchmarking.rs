@@ -4,7 +4,7 @@
 use super::*;
 use crate::Pallet as Certificate;
 use frame_benchmarking::{account as benchmark_account, v2::*};
-use frame_support::traits::Currency;
+use frame_support::{traits::Currency, sp_runtime::traits::Bounded};
 use frame_system::RawOrigin;
 
 pub fn get_account<T: Config>(name: &'static str) -> T::AccountId {

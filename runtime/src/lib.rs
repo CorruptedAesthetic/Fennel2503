@@ -66,8 +66,8 @@ impl_opaque_keys! {
 // https://docs.substrate.io/main-docs/build/upgrade#runtime-versioning
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: alloc::borrow::Cow::Borrowed("solochain-template-runtime"),
-	impl_name: alloc::borrow::Cow::Borrowed("solochain-template-runtime"),
+	spec_name: alloc::borrow::Cow::Borrowed("solochain-runtime"),
+	impl_name: alloc::borrow::Cow::Borrowed("solochain-runtime"),
 	authoring_version: 1,
 	// The version of the runtime specification. A full node will not attempt to use its native
 	//   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
@@ -241,11 +241,6 @@ impl pallet_certificate::Config for Runtime {
     type LockPrice = CertificateLockPrice;
 }
 
-impl pallet_template::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
-}
-
 // Implement the Config trait for the identity pallet in the runtime
 impl pallet_identity::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
@@ -329,32 +324,28 @@ pub mod runtime {
 	#[runtime::pallet_index(6)]
 	pub type Sudo = pallet_sudo;
 
-	// Include the custom logic from the pallet-template in the runtime.
 	#[runtime::pallet_index(7)]
-	pub type Template = pallet_template;
-	
-	#[runtime::pallet_index(8)]
 	pub type Session = pallet_session;
 	
-	#[runtime::pallet_index(9)]
+	#[runtime::pallet_index(8)]
 	pub type ValidatorManager = pallet_validator_manager;
 	
-	#[runtime::pallet_index(10)]
+	#[runtime::pallet_index(9)]
 	pub type Certificate = pallet_certificate;
 	
-	#[runtime::pallet_index(11)]
+	#[runtime::pallet_index(10)]
 	pub type Identity = pallet_identity;
 	
-	#[runtime::pallet_index(12)]
+	#[runtime::pallet_index(11)]
 	pub type Keystore = pallet_keystore;
 
-	#[runtime::pallet_index(13)]
+	#[runtime::pallet_index(12)]
 	pub type Infostratus = pallet_infostratus;
 
-	#[runtime::pallet_index(14)]
+	#[runtime::pallet_index(13)]
 	pub type Signal = pallet_signal;
 
-	#[runtime::pallet_index(15)]
+	#[runtime::pallet_index(14)]
 	pub type Trust = pallet_trust;
 }
 

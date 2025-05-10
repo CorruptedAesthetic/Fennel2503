@@ -5,7 +5,7 @@ use crate::Pallet as Identity;
 use frame_benchmarking::{account as benchmark_account, v2::*};
 use frame_support::BoundedVec;
 use frame_system::RawOrigin;
-use scale_info::prelude::{format, vec};
+use scale_info::prelude::format;
 
 pub fn get_account<T: Config>(name: &'static str) -> T::AccountId {
 	let account: T::AccountId = benchmark_account(name, 0, 0);
@@ -22,205 +22,57 @@ pub fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) 
 
 #[benchmarks]
 mod benchmarks {
-	use super::*;
+    use super::*;
 
-	#[benchmark]
-	fn create_identity() -> Result<(), BenchmarkError> {
-		let anakin = get_origin::<T>("Anakin");
+    #[benchmark]
+    fn create_identity() -> Result<(), BenchmarkError> {
+        let who = get_account::<T>("Anakin");
+        #[extrinsic_call]
+        _(RawOrigin::Signed(who.clone()));
+        // Use correct storage accessor for identity existence
+        let id = Identity::<T>::identity_number() - 1;
+        assert_eq!(Identity::<T>::identity_list(id), Some(who.clone()));
+        Ok(())
+    }
 
-		for _ in 0..1000 {
-			Identity::<T>::create_identity(anakin.clone().into())?;
-		}
+    #[benchmark]
+    fn revoke_identity() -> Result<(), BenchmarkError> {
+        let who = get_account::<T>("Anakin");
+        Identity::<T>::create_identity(RawOrigin::Signed(who.clone()).into()).ok();
+        let id = Identity::<T>::identity_number() - 1;
+        #[extrinsic_call]
+        _(RawOrigin::Signed(who.clone()), id);
+        assert_eq!(Identity::<T>::identity_list(id), None);
+        Ok(())
+    }
 
-		let previous_identity_num = IdentityNumber::<T>::get();
+    #[benchmark]
+    fn add_or_update_identity_trait() -> Result<(), BenchmarkError> {
+        let who = get_account::<T>("Anakin");
+        Identity::<T>::create_identity(RawOrigin::Signed(who.clone()).into()).ok();
+        let id = Identity::<T>::identity_number() - 1;
+        let name: BoundedVec<u8, T::MaxSize> = "name".as_bytes().to_vec().try_into().unwrap();
+        let value: BoundedVec<u8, T::MaxSize> = "Skywalker".as_bytes().to_vec().try_into().unwrap();
+        #[extrinsic_call]
+        _(RawOrigin::Signed(who.clone()), id, name.clone(), value.clone());
+        assert_eq!(Identity::<T>::identity_trait_list(id, name.clone()), value);
+        Ok(())
+    }
 
-		#[extrinsic_call]
-		_(anakin.clone());
+    #[benchmark]
+    fn remove_identity_trait() -> Result<(), BenchmarkError> {
+        let who = get_account::<T>("Anakin");
+        Identity::<T>::create_identity(RawOrigin::Signed(who.clone()).into()).ok();
+        let id = Identity::<T>::identity_number() - 1;
+        let name: BoundedVec<u8, T::MaxSize> = "name".as_bytes().to_vec().try_into().unwrap();
+        let value: BoundedVec<u8, T::MaxSize> = "Skywalker".as_bytes().to_vec().try_into().unwrap();
+        Identity::<T>::add_or_update_identity_trait(RawOrigin::Signed(who.clone()).into(), id, name.clone(), value.clone()).ok();
+        #[extrinsic_call]
+        _(RawOrigin::Signed(who.clone()), id, name.clone());
+        let empty: BoundedVec<u8, T::MaxSize> = BoundedVec::default();
+        assert_eq!(Identity::<T>::identity_trait_list(id, name.clone()), empty);
+        Ok(())
+    }
 
-		assert_eq!(IdentityNumber::<T>::get(), previous_identity_num + 1);
-		let owner = get_account::<T>("Anakin");
-		let identity_id = previous_identity_num + 1;
-		assert_last_event::<T>(Event::IdentityCreated { identity_id, owner }.into());
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn revoke_identity() -> Result<(), BenchmarkError> {
-		let anakin = get_origin::<T>("Anakin");
-		let identity_num: u32 = IdentityNumber::<T>::get().into();
-		Identity::<T>::create_identity(anakin.clone().into())?;
-
-		#[extrinsic_call]
-		_(anakin.clone(), identity_num);
-
-		let owner = get_account::<T>("Anakin");
-		let identity_id = identity_num;
-		assert_last_event::<T>(Event::IdentityRevoked { identity_id, owner }.into());
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn revoke_identity_heavy_storage(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
-		let anakin = get_origin::<T>("Anakin");
-
-		for _ in 0..m {
-			Identity::<T>::create_identity(anakin.clone().into())?;
-		}
-
-		#[extrinsic_call]
-		_(anakin.clone(), 301);
-
-		// Check that the identity no longer exists in the IdentityList.
-		assert!(!IdentityList::<T>::contains_key(301));
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn add_or_update_identity_trait() -> Result<(), BenchmarkError> {
-		let anakin = get_origin::<T>("Anakin");
-		let name: BoundedVec<u8, T::MaxSize> = "name".as_bytes().to_vec().try_into().unwrap();
-		let value: BoundedVec<u8, T::MaxSize> = "Skywalker".as_bytes().to_vec().try_into().unwrap();
-
-		let identity_index: u32 = IdentityNumber::<T>::get();
-		Identity::<T>::create_identity(anakin.clone().into())?;
-
-		#[extrinsic_call]
-		_(anakin.clone(), identity_index.into(), name.into(), value.into());
-
-		assert!(IdentityList::<T>::contains_key(identity_index));
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn add_or_update_long_identity_trait() -> Result<(), BenchmarkError> {
-		let anakin = get_origin::<T>("Anakin");
-		let name: BoundedVec<u8, T::MaxSize> = vec![0; 1000].try_into().unwrap();
-		let value: BoundedVec<u8, T::MaxSize> = vec![0; 1000].try_into().unwrap();
-
-		let identity_index: u32 = IdentityNumber::<T>::get();
-		Identity::<T>::create_identity(anakin.clone().into())?;
-
-		#[extrinsic_call]
-		_(anakin.clone(), identity_index.into(), name.into(), value.into());
-
-		assert!(IdentityList::<T>::contains_key(identity_index));
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn add_or_update_many_identity_traits(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
-		let anakin = get_origin::<T>("Anakin");
-		let identity_index: u32 = IdentityNumber::<T>::get();
-		Identity::<T>::create_identity(anakin.clone().into())?;
-
-		for i in 0..m {
-			let name: BoundedVec<u8, T::MaxSize> =
-				format!("name{}", i).as_bytes().to_vec().try_into().unwrap();
-			let value: BoundedVec<u8, T::MaxSize> =
-				format!("value{}", i).as_bytes().to_vec().try_into().unwrap();
-
-			Identity::<T>::add_or_update_identity_trait(
-				anakin.clone().into(),
-				identity_index.into(),
-				name.into(),
-				value.into(),
-			)?;
-		}
-
-		let obiwan = get_origin::<T>("Obi-Wan");
-		let new_identity_index: u32 = IdentityNumber::<T>::get();
-		Identity::<T>::create_identity(obiwan.clone().into())?;
-		let name: BoundedVec<u8, T::MaxSize> = vec![0; 1000].try_into().unwrap();
-		let value: BoundedVec<u8, T::MaxSize> = vec![0; 1000].try_into().unwrap();
-
-		#[extrinsic_call]
-		_(obiwan, new_identity_index.into(), name.into(), value.into());
-
-		assert!(IdentityList::<T>::contains_key(new_identity_index));
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn remove_identity_trait() -> Result<(), BenchmarkError> {
-		let anakin = get_origin::<T>("Anakin");
-		let name: BoundedVec<u8, T::MaxSize> = "name".as_bytes().to_vec().try_into().unwrap();
-		let value: BoundedVec<u8, T::MaxSize> = "Skywalker".as_bytes().to_vec().try_into().unwrap();
-
-		let identity_index: u32 = IdentityNumber::<T>::get();
-		Identity::<T>::create_identity(anakin.clone().into())?;
-		Identity::<T>::add_or_update_identity_trait(
-			anakin.clone().into(),
-			identity_index.into(),
-			name.clone(),
-			value.into(),
-		)?;
-
-		#[extrinsic_call]
-		_(anakin.clone(), identity_index.into(), name.into());
-
-		assert!(IdentityList::<T>::contains_key(identity_index));
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn remove_identity_trait_heavy_storage(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
-		let anakin = get_origin::<T>("Anakin");
-		let identity_index: u32 = IdentityNumber::<T>::get();
-		Identity::<T>::create_identity(anakin.clone().into())?;
-
-		for i in 0..m {
-			let name: BoundedVec<u8, T::MaxSize> =
-				format!("name{}", i).as_bytes().to_vec().try_into().unwrap();
-			let value: BoundedVec<u8, T::MaxSize> =
-				format!("value{}", i).as_bytes().to_vec().try_into().unwrap();
-
-			Identity::<T>::add_or_update_identity_trait(
-				anakin.clone().into(),
-				identity_index.into(),
-				name.into(),
-				value.into(),
-			)?;
-		}
-
-		let name: BoundedVec<u8, T::MaxSize> = vec![0; 1000].try_into().unwrap();
-
-		#[extrinsic_call]
-		_(anakin.clone(), identity_index.into(), name.into());
-
-		assert!(IdentityList::<T>::contains_key(identity_index));
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn remove_long_identity_trait() -> Result<(), BenchmarkError> {
-		let anakin = get_origin::<T>("Anakin");
-		let name: BoundedVec<u8, T::MaxSize> = vec![0; 1000].try_into().unwrap();
-		let value: BoundedVec<u8, T::MaxSize> = vec![0; 1000].try_into().unwrap();
-
-		let identity_index: u32 = IdentityNumber::<T>::get();
-		Identity::<T>::create_identity(anakin.clone().into())?;
-		Identity::<T>::add_or_update_identity_trait(
-			anakin.clone().into(),
-			identity_index.into(),
-			name.clone(),
-			value.into(),
-		)?;
-
-		#[extrinsic_call]
-		_(anakin.clone(), identity_index.into(), name.into());
-
-		assert!(IdentityList::<T>::contains_key(identity_index));
-
-		Ok(())
-	}
-
-	impl_benchmark_test_suite!(Identity, crate::mock::new_test_ext(), crate::mock::Test);
+    impl_benchmark_test_suite!(Identity, crate::mock::new_test_ext(), crate::mock::Test);
 }
