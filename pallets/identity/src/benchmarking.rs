@@ -26,7 +26,7 @@ mod benchmarks {
     fn revoke_identity() -> Result<(), BenchmarkError> {
         // Setup: create an identity to revoke
         let caller: T::AccountId = whitelisted_caller();
-        Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()).into())?;
+        Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()))?;
         let id = Identity::<T>::identity_number().saturating_sub(1);
 
         #[extrinsic_call]
@@ -41,7 +41,7 @@ mod benchmarks {
     fn add_or_update_identity_trait() -> Result<(), BenchmarkError> {
         // Setup: create identity and prepare a key/value pair
         let caller: T::AccountId = whitelisted_caller();
-        Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()).into())?;
+        Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()))?;
         let id = Identity::<T>::identity_number().saturating_sub(1);
         let key: BoundedVec<u8, T::MaxSize> = b"name".to_vec().try_into().unwrap();
         let value: BoundedVec<u8, T::MaxSize> = b"value".to_vec().try_into().unwrap();
@@ -58,12 +58,12 @@ mod benchmarks {
     fn remove_identity_trait() -> Result<(), BenchmarkError> {
         // Setup: create identity, add a trait, then remove it
         let caller: T::AccountId = whitelisted_caller();
-        Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()).into())?;
+        Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()))?;
         let id = Identity::<T>::identity_number().saturating_sub(1);
         let key: BoundedVec<u8, T::MaxSize> = b"name".to_vec().try_into().unwrap();
         let value: BoundedVec<u8, T::MaxSize> = b"value".to_vec().try_into().unwrap();
         Identity::<T>::add_or_update_identity_trait(
-            RawOrigin::Signed(caller.clone()).into(),
+            RawOrigin::Signed(caller.clone()),
             id,
             key.clone(),
             value.clone(),
