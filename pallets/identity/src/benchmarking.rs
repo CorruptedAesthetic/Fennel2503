@@ -38,13 +38,13 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn add_or_update_identity_trait() -> Result<(), BenchmarkError> {
+    fn add_or_update_identity_trait(l: Linear<1, T::MaxSize>) -> Result<(), BenchmarkError> {
         // Setup: create identity and prepare a key/value pair
         let caller: T::AccountId = whitelisted_caller();
         Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()))?;
         let id = Identity::<T>::identity_number().saturating_sub(1);
-        let key: BoundedVec<u8, T::MaxSize> = b"name".to_vec().try_into().unwrap();
-        let value: BoundedVec<u8, T::MaxSize> = b"value".to_vec().try_into().unwrap();
+        let key: BoundedVec<u8, T::MaxSize> = vec![0u8; l as usize].try_into().unwrap();
+        let value: BoundedVec<u8, T::MaxSize> = vec![1u8; l as usize].try_into().unwrap();
 
         #[extrinsic_call]
         _(RawOrigin::Signed(caller.clone()), id, key.clone(), value.clone());
@@ -55,13 +55,13 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn remove_identity_trait() -> Result<(), BenchmarkError> {
+    fn remove_identity_trait(l: Linear<1, T::MaxSize>) -> Result<(), BenchmarkError> {
         // Setup: create identity, add a trait, then remove it
         let caller: T::AccountId = whitelisted_caller();
         Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()))?;
         let id = Identity::<T>::identity_number().saturating_sub(1);
-        let key: BoundedVec<u8, T::MaxSize> = b"name".to_vec().try_into().unwrap();
-        let value: BoundedVec<u8, T::MaxSize> = b"value".to_vec().try_into().unwrap();
+        let key: BoundedVec<u8, T::MaxSize> = vec![0u8; l as usize].try_into().unwrap();
+        let value: BoundedVec<u8, T::MaxSize> = vec![1u8; l as usize].try_into().unwrap();
         Identity::<T>::add_or_update_identity_trait(
             RawOrigin::Signed(caller.clone()),
             id,
