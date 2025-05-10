@@ -118,6 +118,17 @@ fn revoke_identity_from_non_owning_account() {
 }
 
 #[test]
+fn revoke_nonexistent_identity_fails() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        assert_noop!(
+            Pallet::revoke_identity(RuntimeOrigin::signed(1), 999),
+            Error::<Test>::IdentityNotFound
+        );
+    });
+}
+
+#[test]
 fn add_or_update_identity_trait() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
