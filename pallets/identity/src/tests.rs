@@ -98,6 +98,8 @@ fn revoke_identity_multiple_from_same_account() {
 		assert_ok!(Pallet::revoke_identity(RuntimeOrigin::signed(300), 0));
 		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
 		assert!(Pallet::identity_list(0).is_none());
+		// Check that identity_number is not decremented after revocation
+		assert_eq!(Pallet::identity_number(), 2);
 	});
 }
 
