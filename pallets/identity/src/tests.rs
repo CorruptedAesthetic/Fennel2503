@@ -1,4 +1,4 @@
-use crate::{mock::*, Error, IdentityNumber};
+use crate::{mock::*, Error, IdentityNumber, Event};
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 
 #[test]
@@ -6,7 +6,7 @@ fn issue_identity() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(1)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 1 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 0, owner: 1 }.into());
 	});
 }
 
@@ -15,11 +15,11 @@ fn issue_identity_increments_by_number_of_times_called() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(1)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 1 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 0, owner: 1 }.into());
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(2)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 2 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 1, owner: 2 }.into());
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(3)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 2, owner: 3 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 2, owner: 3 }.into());
 
 		assert_eq!(Pallet::identity_number(), 3);
 	});
@@ -30,9 +30,9 @@ fn issue_identity_registers_different_account_ids_with_new_identities() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(200)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 200 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 1, owner: 200 }.into());
 
 		assert_eq!(Pallet::identity_list(0).unwrap(), 300);
 		assert_eq!(Pallet::identity_list(1).unwrap(), 200);
@@ -44,9 +44,9 @@ fn issue_identity_registers_same_account_id_with_multiple_new_identities() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 1, owner: 300 }.into());
 
 		assert_eq!(Pallet::identity_list(0).unwrap(), 300);
 		assert_eq!(Pallet::identity_list(1).unwrap(), 300);
@@ -58,9 +58,9 @@ fn revoke_identity() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(Pallet::revoke_identity(RuntimeOrigin::signed(300), 0));
-		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
 		assert!(Pallet::identity_list(0).is_none());
 	});
 }
@@ -70,15 +70,15 @@ fn revoke_identity_multiple_from_different_accounts() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(200)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 200 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 1, owner: 200 }.into());
 
 		assert_ok!(Pallet::revoke_identity(RuntimeOrigin::signed(300), 0));
-		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
 		assert!(Pallet::identity_list(0).is_none());
 		assert_ok!(Pallet::revoke_identity(RuntimeOrigin::signed(200), 1));
-		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 1, owner: 200 }.into());
+		System::assert_last_event(Event::IdentityRevoked { identity_id: 1, owner: 200 }.into());
 		assert!(Pallet::identity_list(1).is_none());
 	});
 }
@@ -88,15 +88,15 @@ fn revoke_identity_multiple_from_same_account() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 1, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 1, owner: 300 }.into());
 
 		assert_ok!(Pallet::revoke_identity(RuntimeOrigin::signed(300), 1));
-		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 1, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityRevoked { identity_id: 1, owner: 300 }.into());
 		assert!(Pallet::identity_list(1).is_none());
 		assert_ok!(Pallet::revoke_identity(RuntimeOrigin::signed(300), 0));
-		System::assert_last_event(crate::Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityRevoked { identity_id: 0, owner: 300 }.into());
 		assert!(Pallet::identity_list(0).is_none());
 		// Check that identity_number is not decremented after revocation
 		assert_eq!(Pallet::identity_number(), 2);
@@ -138,7 +138,7 @@ fn add_or_update_identity_trait() {
 
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(account_id)));
 		System::assert_last_event(
-			crate::Event::IdentityCreated { identity_id: 0, owner: account_id.try_into().unwrap() }.into(),
+			Event::IdentityCreated { identity_id: 0, owner: account_id.try_into().unwrap() }.into(),
 		);
 
 		let luke = BoundedVec::<u8, MaxSize>::try_from("Luke Skywalker".as_bytes().to_vec())
@@ -150,7 +150,7 @@ fn add_or_update_identity_trait() {
 			luke.clone()
 		));
 		System::assert_last_event(
-			crate::Event::IdentityUpdated { identity_id: 0, owner: account_id.try_into().unwrap() }.into(),
+			Event::IdentityUpdated { identity_id: 0, owner: account_id.try_into().unwrap() }.into(),
 		);
 		assert_eq!(Pallet::identity_trait_list(0, key.clone()), luke.clone());
 
@@ -164,7 +164,7 @@ fn add_or_update_identity_trait() {
 			anakin.clone()
 		));
 		System::assert_last_event(
-			crate::Event::IdentityUpdated { identity_id: 0, owner: account_id.try_into().unwrap() }.into(),
+			Event::IdentityUpdated { identity_id: 0, owner: account_id.try_into().unwrap() }.into(),
 		);
 		assert_eq!(Pallet::identity_trait_list(0, key.clone()), anakin.clone());
 	});
@@ -197,7 +197,7 @@ fn remove_identity_trait() {
 	new_test_ext().execute_with(|| {
 		System::set_block_number(1);
 		assert_ok!(Pallet::create_identity(RuntimeOrigin::signed(300)));
-		System::assert_last_event(crate::Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityCreated { identity_id: 0, owner: 300 }.into());
 		type MaxSize = <Test as pallet_identity::Config>::MaxSize;
 		let key = BoundedVec::<u8, MaxSize>::try_from("name".as_bytes().to_vec()).unwrap();
 		let value = BoundedVec::<u8, MaxSize>::try_from("Luke Skywalker".as_bytes().to_vec()).unwrap();
@@ -207,13 +207,13 @@ fn remove_identity_trait() {
 			key.clone(),
 			value.clone()
 		));
-		System::assert_last_event(crate::Event::IdentityUpdated { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityUpdated { identity_id: 0, owner: 300 }.into());
 		assert_ok!(Pallet::remove_identity_trait(
 			RuntimeOrigin::signed(300),
 			0,
 			key.clone()
 		));
-		System::assert_last_event(crate::Event::IdentityUpdated { identity_id: 0, owner: 300 }.into());
+		System::assert_last_event(Event::IdentityUpdated { identity_id: 0, owner: 300 }.into());
 		// Verify the trait is removed from storage
 		assert_eq!(Pallet::identity_trait_list(0, key.clone()), BoundedVec::default());
 	});
@@ -264,6 +264,44 @@ fn create_identity_storage_overflow() {
         assert_noop!(
             Pallet::create_identity(RuntimeOrigin::signed(1)),
             Error::<Test>::StorageOverflow
+        );
+    });
+}
+
+#[test]
+fn add_trait_on_nonexistent_identity_should_fail() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        let bogus_id = 999;
+        type MaxSize = <Test as pallet_identity::Config>::MaxSize;
+        let key   = BoundedVec::<u8, MaxSize>::try_from(b"foo".to_vec()).unwrap();
+        let value = BoundedVec::<u8, MaxSize>::try_from(b"bar".to_vec()).unwrap();
+        assert_noop!(
+            Pallet::add_or_update_identity_trait(
+                RuntimeOrigin::signed(1),
+                bogus_id,
+                key.clone(),
+                value.clone()
+            ),
+            Error::<Test>::IdentityNotOwned
+        );
+    });
+}
+
+#[test]
+fn remove_trait_on_nonexistent_identity_should_fail() {
+    new_test_ext().execute_with(|| {
+        System::set_block_number(1);
+        let bogus_id = 42;
+        type MaxSize = <Test as pallet_identity::Config>::MaxSize;
+        let key = BoundedVec::<u8, MaxSize>::try_from(b"foo".to_vec()).unwrap();
+        assert_noop!(
+            Pallet::remove_identity_trait(
+                RuntimeOrigin::signed(1),
+                bogus_id,
+                key.clone()
+            ),
+            Error::<Test>::IdentityNotOwned
         );
     });
 }
