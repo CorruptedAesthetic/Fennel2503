@@ -30,7 +30,7 @@ mod benchmarks {
         let id = Identity::<T>::identity_number().saturating_sub(1);
 
         #[extrinsic_call]
-        _(RawOrigin::Signed(caller.clone()), id);
+        _(RawOrigin::Signed(caller.clone()));
 
         // Verify removal from storage
         assert!(Identity::<T>::identity_list(id).is_none());
@@ -41,9 +41,8 @@ mod benchmarks {
     fn revoke_identity_not_owned() -> Result<(), BenchmarkError> {
         // Attempt to revoke a non-existent identity (should error early)
         let caller: T::AccountId = whitelisted_caller();
-        let bogus_id = 999u32;
         #[extrinsic_call]
-        _(RawOrigin::Signed(caller.clone()), bogus_id);
+        _(RawOrigin::Signed(caller.clone()));
         Ok(())
     }
 
