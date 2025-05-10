@@ -123,7 +123,7 @@ fn revoke_nonexistent_identity_fails() {
         System::set_block_number(1);
         assert_noop!(
             Pallet::revoke_identity(RuntimeOrigin::signed(1), 999),
-            Error::<Test>::IdentityNotFound
+            Error::<Test>::IdentityNotOwned
         );
     });
 }

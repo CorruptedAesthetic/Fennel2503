@@ -1,24 +1,9 @@
 #![cfg(feature = "runtime-benchmarks")]
 use super::*;
 use crate::Pallet as Identity;
-
-use frame_benchmarking::{account as benchmark_account, v2::*};
-use frame_support::BoundedVec;
+use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
-use scale_info::prelude::format;
-
-pub fn get_account<T: Config>(name: &'static str) -> T::AccountId {
-	let account: T::AccountId = benchmark_account(name, 0, 0);
-	account
-}
-
-pub fn get_origin<T: Config>(name: &'static str) -> RawOrigin<T::AccountId> {
-	RawOrigin::Signed(get_account::<T>(name))
-}
-
-pub fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
-    frame_system::Pallet::<T>::assert_last_event(generic_event.into());
-}
+use frame_support::BoundedVec;
 
 #[benchmarks]
 mod benchmarks {
@@ -26,51 +11,69 @@ mod benchmarks {
 
     #[benchmark]
     fn create_identity() -> Result<(), BenchmarkError> {
-        let who = get_account::<T>("Anakin");
+        // Worst-case: signing and creating a new identity
+        let caller: T::AccountId = whitelisted_caller();
         #[extrinsic_call]
-        _(RawOrigin::Signed(who.clone()));
-        // Use correct storage accessor for identity existence
-        let id = Identity::<T>::identity_number() - 1;
-        assert_eq!(Identity::<T>::identity_list(id), Some(who.clone()));
+        _(RawOrigin::Signed(caller.clone()));
+
+        // Verify that the identity was stored correctly
+        let id = Identity::<T>::identity_number().saturating_sub(1);
+        assert_eq!(Identity::<T>::identity_list(id), Some(caller.clone()));
         Ok(())
     }
 
     #[benchmark]
     fn revoke_identity() -> Result<(), BenchmarkError> {
-        let who = get_account::<T>("Anakin");
-        Identity::<T>::create_identity(RawOrigin::Signed(who.clone()).into()).ok();
-        let id = Identity::<T>::identity_number() - 1;
+        // Setup: create an identity to revoke
+        let caller: T::AccountId = whitelisted_caller();
+        Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()).into()).unwrap();
+        let id = Identity::<T>::identity_number().saturating_sub(1);
+
         #[extrinsic_call]
-        _(RawOrigin::Signed(who.clone()), id);
-        assert_eq!(Identity::<T>::identity_list(id), None);
+        _(RawOrigin::Signed(caller.clone()), id);
+
+        // Verify removal from storage
+        assert!(Identity::<T>::identity_list(id).is_none());
         Ok(())
     }
 
     #[benchmark]
     fn add_or_update_identity_trait() -> Result<(), BenchmarkError> {
-        let who = get_account::<T>("Anakin");
-        Identity::<T>::create_identity(RawOrigin::Signed(who.clone()).into()).ok();
-        let id = Identity::<T>::identity_number() - 1;
-        let name: BoundedVec<u8, T::MaxSize> = "name".as_bytes().to_vec().try_into().unwrap();
-        let value: BoundedVec<u8, T::MaxSize> = "Skywalker".as_bytes().to_vec().try_into().unwrap();
+        // Setup: create identity and prepare a key/value pair
+        let caller: T::AccountId = whitelisted_caller();
+        Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()).into()).unwrap();
+        let id = Identity::<T>::identity_number().saturating_sub(1);
+        let key: BoundedVec<u8, T::MaxSize> = b"name".to_vec().try_into().unwrap();
+        let value: BoundedVec<u8, T::MaxSize> = b"value".to_vec().try_into().unwrap();
+
         #[extrinsic_call]
-        _(RawOrigin::Signed(who.clone()), id, name.clone(), value.clone());
-        assert_eq!(Identity::<T>::identity_trait_list(id, name.clone()), value);
+        _(RawOrigin::Signed(caller.clone()), id, key.clone(), value.clone());
+
+        // Verify storage update
+        assert_eq!(Identity::<T>::identity_trait_list(id, key.clone()), value.clone());
         Ok(())
     }
 
     #[benchmark]
     fn remove_identity_trait() -> Result<(), BenchmarkError> {
-        let who = get_account::<T>("Anakin");
-        Identity::<T>::create_identity(RawOrigin::Signed(who.clone()).into()).ok();
-        let id = Identity::<T>::identity_number() - 1;
-        let name: BoundedVec<u8, T::MaxSize> = "name".as_bytes().to_vec().try_into().unwrap();
-        let value: BoundedVec<u8, T::MaxSize> = "Skywalker".as_bytes().to_vec().try_into().unwrap();
-        Identity::<T>::add_or_update_identity_trait(RawOrigin::Signed(who.clone()).into(), id, name.clone(), value.clone()).ok();
+        // Setup: create identity, add a trait, then remove it
+        let caller: T::AccountId = whitelisted_caller();
+        Identity::<T>::create_identity(RawOrigin::Signed(caller.clone()).into()).unwrap();
+        let id = Identity::<T>::identity_number().saturating_sub(1);
+        let key: BoundedVec<u8, T::MaxSize> = b"name".to_vec().try_into().unwrap();
+        let value: BoundedVec<u8, T::MaxSize> = b"value".to_vec().try_into().unwrap();
+        Identity::<T>::add_or_update_identity_trait(
+            RawOrigin::Signed(caller.clone()).into(),
+            id,
+            key.clone(),
+            value.clone(),
+        ).unwrap();
+
         #[extrinsic_call]
-        _(RawOrigin::Signed(who.clone()), id, name.clone());
-        let empty: BoundedVec<u8, T::MaxSize> = BoundedVec::default();
-        assert_eq!(Identity::<T>::identity_trait_list(id, name.clone()), empty);
+        _(RawOrigin::Signed(caller.clone()), id, key.clone());
+
+        // Verify removal
+        assert_eq!(Identity::<T>::identity_trait_list(id, key.clone()), BoundedVec::<u8, T::MaxSize>::default());
         Ok(())
     }
 
