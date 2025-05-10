@@ -15,6 +15,10 @@ pub fn get_origin<T: Config>(name: &'static str) -> RawOrigin<T::AccountId> {
 	RawOrigin::Signed(get_account::<T>(name))
 }
 
+pub fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
+    frame_system::Pallet::<T>::assert_last_event(generic_event.into());
+}
+
 #[benchmarks]
 mod benchmarks {
 	use super::*;
@@ -35,7 +39,7 @@ mod benchmarks {
 		let caller_account_id: T::AccountId = get_account::<T>("Spock");
 		let target_account_id: T::AccountId = get_account::<T>("James");
 		assert!(CertificateList::<T>::contains_key(caller_account_id.clone(), target_account_id.clone()));
-		assert_last_event::<T>(Event::CertificateIssued { issuer: caller_account_id, subject: target_account_id }.into());
+		assert_last_event::<T>(Event::CertificateSent { sender: caller_account_id, recipient: target_account_id }.into());
 
 		Ok(())
 	}
@@ -57,7 +61,7 @@ mod benchmarks {
 		let target_account_id: T::AccountId = get_account::<T>("Montgomery");
 		assert!(CertificateList::<T>::contains_key(caller_account_id.clone(), target_account_id.clone()));
 		assert!(!CertificateList::<T>::get(caller_account_id.clone(), target_account_id.clone()));
-		assert_last_event::<T>(Event::CertificateRevoked { issuer: caller_account_id, subject: target_account_id }.into());
+		assert_last_event::<T>(Event::CertificateRevoked { sender: caller_account_id, recipient: target_account_id }.into());
 		Ok(())
 	}
 

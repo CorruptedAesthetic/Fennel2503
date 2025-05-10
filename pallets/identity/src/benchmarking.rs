@@ -16,6 +16,10 @@ pub fn get_origin<T: Config>(name: &'static str) -> RawOrigin<T::AccountId> {
 	RawOrigin::Signed(get_account::<T>(name))
 }
 
+pub fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
+    frame_system::Pallet::<T>::assert_last_event(generic_event.into());
+}
+
 #[benchmarks]
 mod benchmarks {
 	use super::*;
@@ -34,6 +38,9 @@ mod benchmarks {
 		_(anakin.clone());
 
 		assert_eq!(IdentityNumber::<T>::get(), previous_identity_num + 1);
+		let owner = get_account::<T>("Anakin");
+		let identity_id = previous_identity_num + 1;
+		assert_last_event::<T>(Event::IdentityCreated { identity_id, owner }.into());
 
 		Ok(())
 	}
@@ -47,8 +54,9 @@ mod benchmarks {
 		#[extrinsic_call]
 		_(anakin.clone(), identity_num);
 
-		// Check that the identity no longer exists in the IdentityList.
-		assert!(!IdentityList::<T>::contains_key(identity_num));
+		let owner = get_account::<T>("Anakin");
+		let identity_id = identity_num;
+		assert_last_event::<T>(Event::IdentityRevoked { identity_id, owner }.into());
 
 		Ok(())
 	}

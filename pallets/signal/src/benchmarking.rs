@@ -156,9 +156,9 @@ mod benchmarks {
 		}
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone().into());
+		_(RawOrigin::Signed(caller.clone()), target.clone());
 
-		assert_last_event::<T>(Event::SignalSent { target, who: caller }.into());
+		assert_last_event::<T>(Event::SignalSent { who: caller, signal: target }.into());
 
 		Ok(())
 	}
@@ -184,7 +184,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), service.clone(), url.clone());
 
-		assert_last_event::<T>(Event::ServiceSignalSent { service, url, who: caller }.into());
+		assert_last_event::<T>(Event::ServiceSignalSent { who: caller, service_identifier: service, url }.into());
 
 		Ok(())
 	}

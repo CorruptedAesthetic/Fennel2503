@@ -23,71 +23,7 @@
 //
 // For more information, please refer to <http://unlicense.org>
 
-use crate::{
-	runtime::{
-		Balances, Runtime, System, ValidatorManager, Template, /* include the validator manager pallet */
-	},
-	AccountId,
-};
-use frame_benchmarking::v2::*;
-use frame_support::traits::Currency;
-use sp_keyring::Sr25519Keyring;
-
-// Include any individual pallet benchmarks here.
-use pallet_template::benchmarking::Pallet as TemplateBenchmarking;
-
-use frame_system::RawOrigin;
-
-fn treasury_account() -> AccountId {
-	Sr25519Keyring::Bob.to_account_id()
-}
-
-fn alice_account() -> AccountId {
-	Sr25519Keyring::Alice.to_account_id()
-}
-
-// Create benchmark implementations for the pallet
-#[benchmarks]
-mod benches {
-	use super::*;
-
-	// Add the custom benchmark items here
-	// These benchmarks aren't used for anything in the codebase
-	// other than testing the macros.
-	// Ensure that calling the treasury account does not use a bad origin.
-	#[benchmark]
-	fn bench_bad_origin() {
-		let caller = treasury_account();
-
-		#[extrinsic_call]
-		// we use Call::System here to just test the benchmarking macro
-		// this extrinsic might error, but the benchmarking will still work
-		_(RawOrigin::Signed(caller), frame_system::Call::remark_with_event { remark: vec![] });
-	}
-
-	// Ensure extrinsic works with a whitelisted caller
-	#[benchmark]
-	fn bench_whitelist_call() {
-		let caller = alice_account();
-		whitelist!(caller);
-
-		#[extrinsic_call]
-		_(
-			RawOrigin::Signed(caller.clone()),
-			frame_system::Call::remark_with_event { remark: vec![] },
-		);
-		// verify caller had balance transfer.
-	}
-
-	// Implementation of all pallet benchmarks.
-	impl_benchmark_test_suite!(
-		// List all pallets and benchmarks that need to be tested here
-		TemplateBenchmarking,
-		crate::runtime::Template,
-		// Add ValidatorManager benchmarking
-		crate::runtime::ValidatorManager,
-	);
-}
+// No imports needed for define_benchmarks! macro
 
 frame_benchmarking::define_benchmarks!(
 	[frame_benchmarking, BaselineBench::<Runtime>]

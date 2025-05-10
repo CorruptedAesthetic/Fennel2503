@@ -18,6 +18,10 @@ pub fn get_origin<T: Config>(name: &'static str) -> RawOrigin<T::AccountId> {
 	RawOrigin::Signed(get_account::<T>(name))
 }
 
+pub fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
+    frame_system::Pallet::<T>::assert_last_event(generic_event.into());
+}
+
 #[benchmarks]
 mod benchmarks {
 	use super::*;
@@ -28,13 +32,14 @@ mod benchmarks {
 	fn send_submission() -> Result<(), BenchmarkError> {
 		let caller = get_origin::<T>("Spock");
 		let caller_account: T::AccountId = get_account::<T>("Spock");
-		let recipient = get_account::<T>("Montgomery");
+		let resource_location = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from("TEST".as_bytes().to_vec()).unwrap();
 		T::Currency::make_free_balance_be(&caller_account, BalanceOf::<T>::max_value());
 
 		#[extrinsic_call]
-		_(caller, recipient.clone());
+		create_submission_entry(caller, resource_location.clone());
 
-		assert!(SubmissionsList::<T>::contains_key(caller_account, recipient));
+		assert!(SubmissionsList::<T>::contains_key(caller_account.clone(), resource_location.clone()));
+		assert_last_event::<T>(Event::SubmissionSent { who: caller_account, resource_location }.into());
 		Ok(())
 	}
 
@@ -42,15 +47,15 @@ mod benchmarks {
 	fn revoke_submission() -> Result<(), BenchmarkError> {
 		let caller = get_origin::<T>("Spock");
 		let caller_account: T::AccountId = get_account::<T>("Spock");
-		let recipient = get_account::<T>("Montgomery");
+		let resource_location = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from("TEST".as_bytes().to_vec()).unwrap();
 		T::Currency::make_free_balance_be(&caller_account, BalanceOf::<T>::max_value());
-		// Use direct call for setup, not the macro shorthand
-		Infostratus::<T>::send_submission(caller.clone().into(), recipient.clone())?;
+		Infostratus::<T>::create_submission_entry(caller.clone().into(), resource_location.clone())?;
 
 		#[extrinsic_call]
-		_(caller, recipient.clone());
+		request_submission_assignment(caller, caller_account.clone(), resource_location.clone());
 
-		assert!(SubmissionsList::<T>::contains_key(caller_account, recipient));
+		assert!(!SubmissionsList::<T>::contains_key(caller_account.clone(), resource_location.clone()));
+		assert_last_event::<T>(Event::SubmissionAssigned { resource_location, who: caller_account }.into());
 		Ok(())
 	}
 
