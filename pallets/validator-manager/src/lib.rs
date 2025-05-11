@@ -24,7 +24,7 @@ pub mod tests;
 pub mod weights;
 
 #[cfg(feature = "runtime-benchmarks")]
-mod benchmarking;
+pub mod benchmarking;
 
 type Session<T> = pallet_session::Pallet<T>;
 
@@ -163,25 +163,19 @@ pub mod pallet {
             T::PrivilegedOrigin::ensure_origin(origin)?;
 
             // Check if this is a known validator
-            #[cfg(not(feature = "runtime-benchmarks"))]
-            {
-                let validators = Session::<T>::validators();
-                ensure!(validators.contains(&validator), Error::<T>::NotValidator);
-                
-                // Check that we won't go below the minimum number of validators
-                let validators_to_remove = ValidatorsToRemove::<T>::get();
-                let current_count = validators.len();
-                let pending_removals = validators_to_remove.len();
-                let validators_to_add = ValidatorsToAdd::<T>::get().len();
-                
-                let final_count = current_count.saturating_add(validators_to_add)
-                    .saturating_sub(pending_removals).saturating_sub(1);
-                
-                ensure!(
-                    final_count >= T::MinAuthorities::get() as usize,
-                    Error::<T>::TooFewValidators
-                );
-            }
+            let validators = Session::<T>::validators();
+            ensure!(validators.contains(&validator), Error::<T>::NotValidator);
+            // Check that we won't go below the minimum number of validators
+            let validators_to_remove = ValidatorsToRemove::<T>::get();
+            let current_count = validators.len();
+            let pending_removals = validators_to_remove.len();
+            let validators_to_add = ValidatorsToAdd::<T>::get().len();
+            let final_count = current_count.saturating_add(validators_to_add)
+                .saturating_sub(pending_removals).saturating_sub(1);
+            ensure!(
+                final_count >= T::MinAuthorities::get() as usize,
+                Error::<T>::TooFewValidators
+            );
 
             // Add to removal queue
             let mut validators_to_remove = ValidatorsToRemove::<T>::get();

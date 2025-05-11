@@ -4,35 +4,39 @@
 
 use super::*;
 use frame_benchmarking::v2::*;
-use frame_system::RawOrigin;
-use codec::Decode;
+
+fn validator_id<T: Config>(seed: u32) -> T::ValidatorId {
+    let account: T::AccountId = account("validator", seed, 0);
+    T::ValidatorOf::convert(account).expect("convert always returns Some for mock/test")
+}
 
 #[benchmarks]
 mod benchmarks {
     use super::*;
+    use frame_system::RawOrigin;
 
     #[benchmark]
-    fn register_validators(c: Linear<1, 10>) -> Result<(), BenchmarkError> {
-        let validators: Vec<T::ValidatorId> = (0..c).map(|i| {
-            T::ValidatorId::decode(&mut [i as u8; 32].as_ref()).expect("Failed to decode account id")
-        }).collect();
-
+    fn register_validators<T: Config>(c: Linear<1, 10>) {
+        ValidatorsToAdd::<T>::kill(); // Clear storage before running
+        let validators: Vec<T::ValidatorId> = (0..c).map(|i| validator_id::<T>(i as u32)).collect();
         #[extrinsic_call]
-        _(RawOrigin::Root, validators.clone());
-
+        Pallet::<T>::register_validators(RawOrigin::Root, validators.clone());
         assert_eq!(ValidatorsToAdd::<T>::get().len(), c as usize);
-        Ok(())
     }
 
     #[benchmark]
-    fn remove_validator() -> Result<(), BenchmarkError> {
-        let validator_id = T::ValidatorId::decode(&mut [1u8; 32].as_ref()).expect("Failed to decode account id");
-
+    fn remove_validator<T: Config>() {
+        // Ensure validator 1 is in the set before removal
+        let validator_id: T::ValidatorId = validator_id::<T>(1);
+        let mut validators = Session::<T>::validators();
+        if !validators.contains(&validator_id) {
+            validators.push(validator_id.clone());
+            // This assumes a helper exists to set validators in mock/test
+            <pallet_session::Validators<T>>::put(validators.clone());
+        }
         #[extrinsic_call]
-        _(RawOrigin::Root, validator_id);
-
+        Pallet::<T>::remove_validator(RawOrigin::Root, validator_id);
         assert_eq!(ValidatorsToRemove::<T>::get().len(), 1);
-        Ok(())
     }
 
     impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);
@@ -40,9 +44,10 @@ mod benchmarks {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::mock::{new_test_ext, Test};
-    use frame_support::assert_ok;
+    // Remove unused imports from test module
+    // use super::*;
+    // use crate::mock::{new_test_ext, Test};
+    // use frame_support::assert_ok;
 
     // #[test]
     // fn test_benchmarks() {

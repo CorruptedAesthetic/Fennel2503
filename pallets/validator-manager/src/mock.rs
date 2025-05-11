@@ -8,12 +8,30 @@ use sp_runtime::testing::UintAuthorityId;
 use sp_runtime::BoundToRuntimeAppPublic;
 use pallet_session::PeriodicSessions;
 use pallet_balances as balances;
-use frame_support::pallet_prelude::ConstU32;
+use frame_support::pallet_prelude::{ConstU32, MaxEncodedLen};
 use sp_runtime::Perbill;
+use codec::{Encode, Decode, DecodeWithMemTracking};
+use scale_info::TypeInfo;
+use sp_std::fmt;
 
-// Use u64 for AccountId and ValidatorId for simplicity in tests
-pub type AccountId = u64;
-pub type ValidatorId = u64;
+// Use u64 for AccountId for simplicity in tests
+pub type AccountId = ValidatorId;
+
+#[cfg_attr(any(feature = "std", test), derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Encode, Decode, TypeInfo, MaxEncodedLen, PartialOrd, Ord, DecodeWithMemTracking)]
+pub struct ValidatorId(pub u64);
+
+impl From<u64> for ValidatorId {
+    fn from(x: u64) -> Self {
+        ValidatorId(x)
+    }
+}
+
+impl fmt::Display for ValidatorId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 pub type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -22,10 +40,10 @@ pub struct DummySessionHandler;
 impl BoundToRuntimeAppPublic for DummySessionHandler {
     type Public = UintAuthorityId;
 }
-impl OneSessionHandler<u64> for DummySessionHandler {
+impl OneSessionHandler<ValidatorId> for DummySessionHandler {
     type Key = UintAuthorityId;
-    fn on_genesis_session<'a, I: Iterator<Item = (&'a u64, Self::Key)>>(_validators: I) {}
-    fn on_new_session<'a, I: Iterator<Item = (&'a u64, Self::Key)>>(_changed: bool, _validators: I, _queued_validators: I) {}
+    fn on_genesis_session<'a, I: Iterator<Item = (&'a ValidatorId, Self::Key)>>(_validators: I) {}
+    fn on_new_session<'a, I: Iterator<Item = (&'a ValidatorId, Self::Key)>>(_changed: bool, _validators: I, _queued_validators: I) {}
     fn on_disabled(_validator_index: u32) {}
 }
 
@@ -126,22 +144,22 @@ impl pallet_validator_manager::Config for Test {
 pub fn new_test_ext() -> sp_io::TestExternalities {
     let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
     pallet_validator_manager::GenesisConfig::<Test> {
-        initial_validators: vec![1, 2, 3],
+        initial_validators: vec![1, 2, 3].into_iter().map(ValidatorId).collect::<Vec<ValidatorId>>(),
     }
     .assimilate_storage(&mut t)
     .unwrap();
     pallet_session::GenesisConfig::<Test> {
         keys: vec![
-            (1, 1, UintAuthorityId(1)),
-            (2, 2, UintAuthorityId(2)),
-            (3, 3, UintAuthorityId(3)),
+            (ValidatorId(1).into(), ValidatorId(1), UintAuthorityId(1)),
+            (ValidatorId(2).into(), ValidatorId(2), UintAuthorityId(2)),
+            (ValidatorId(3).into(), ValidatorId(3), UintAuthorityId(3)),
         ],
         non_authority_keys: vec![],
     }
     .assimilate_storage(&mut t)
     .unwrap();
     balances::GenesisConfig::<Test> {
-        balances: vec![(1, 1000), (2, 1000), (3, 1000), (4, 1000)],
+        balances: vec![(ValidatorId(1), 1000), (ValidatorId(2), 1000), (ValidatorId(3), 1000), (ValidatorId(4), 1000)],
         ..Default::default()
     }
     .assimilate_storage(&mut t)
