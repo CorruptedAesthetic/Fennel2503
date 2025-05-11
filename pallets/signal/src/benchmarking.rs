@@ -1,193 +1,118 @@
-//! Benchmarking setup for pallet-template
+//! Benchmarking setup for pallet-signal
 #![cfg(feature = "runtime-benchmarks")]
 
 use super::*;
 use crate::Pallet as Signal;
-
 use frame_benchmarking::{account as benchmark_account, v2::*};
-use frame_support::{sp_runtime::traits::Bounded, traits::Currency, BoundedVec};
+use frame_support::{traits::Currency, BoundedVec};
+use frame_support::traits::Get;
 use frame_system::RawOrigin;
-use scale_info::prelude::format;
 
 pub fn get_account<T: Config>(name: &'static str) -> T::AccountId {
-	let account: T::AccountId = benchmark_account(name, 0, 0);
-	account
+    benchmark_account(name, 0, 0)
 }
 
-pub fn get_origin<T: Config>(name: &'static str) -> RawOrigin<T::AccountId> {
-	RawOrigin::Signed(get_account::<T>(name))
-}
+// pub fn get_origin<T: Config>(name: &'static str) -> RawOrigin<T::AccountId> {
+//     RawOrigin::Signed(get_account::<T>(name))
+// }
 
 pub fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
-	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
+    frame_system::Pallet::<T>::assert_last_event(generic_event.into());
 }
 
 #[benchmarks]
 mod benchmarks {
-	use super::*;
-	type DepositBalanceOf<T> = <<T as pallet::Config>::Currency as Currency<
-		<T as frame_system::Config>::AccountId,
-	>>::Balance;
+    use super::*;
+    type DepositBalanceOf<T> = <<T as pallet::Config>::Currency as Currency<
+        <T as frame_system::Config>::AccountId,
+    >>::Balance;
 
-	#[benchmark]
-	fn set_signal_parameter() -> Result<(), BenchmarkError> {
-		let target =
-			BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from("TEST".as_bytes().to_vec())
-				.unwrap();
-		let caller: T::AccountId = get_account::<T>("//Alice");
+    #[benchmark]
+    fn set_signal_parameter() -> Result<(), BenchmarkError> {
+        let name = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"PARAM".to_vec()).unwrap();
+        let caller: T::AccountId = get_account::<T>("//Alice");
 
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone(), 0);
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), name.clone(), 42);
 
-		assert!(SignalParameterList::<T>::contains_key(caller.clone(), target.clone()));
-		assert_eq!(SignalParameterList::<T>::get(caller.clone(), target.clone()), 0);
-		assert_last_event::<T>(Event::SignalParameterSet { who: caller }.into());
+        assert!(SignalParameterList::<T>::contains_key(caller.clone(), name.clone()));
+        assert_eq!(SignalParameterList::<T>::get(caller.clone(), name.clone()), 42);
+        assert_last_event::<T>(Event::SignalParameterSet { who: caller }.into());
+        Ok(())
+    }
 
-		Ok(())
-	}
+    #[benchmark]
+    fn send_rating_signal() -> Result<(), BenchmarkError> {
+        let target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"TARGET".to_vec()).unwrap();
+        let caller: T::AccountId = get_account::<T>("//Alice");
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::from(100u32));
 
-	#[benchmark]
-	fn send_rating_signal(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
-		let target =
-			BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from("TEST".as_bytes().to_vec())
-				.unwrap();
-		let caller: T::AccountId = get_account::<T>("//Alice");
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), target.clone(), 5);
 
-		T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::max_value());
+        assert!(RatingSignalList::<T>::contains_key(caller.clone(), target.clone()));
+        assert_eq!(RatingSignalList::<T>::get(caller.clone(), target.clone()), 5);
+        frame_system::Pallet::<T>::assert_has_event(<T as pallet::Config>::RuntimeEvent::from(Event::<T>::SignalLock { account: caller.clone(), amount: T::LockPrice::get().into() }).into());
+        frame_system::Pallet::<T>::assert_last_event(<T as pallet::Config>::RuntimeEvent::from(Event::<T>::RatingSignalSent { who: caller.clone() }).into());
+        Ok(())
+    }
 
-		for i in 0..m {
-			let loop_target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(
-				format!("TEST{}", i).as_bytes().to_vec(),
-			)
-			.unwrap();
-			Signal::<T>::send_rating_signal(
-				RawOrigin::Signed(caller.clone()).into(),
-				loop_target,
-				3,
-			)?;
-		}
+    #[benchmark]
+    fn update_rating_signal() -> Result<(), BenchmarkError> {
+        let target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"TARGET".to_vec()).unwrap();
+        let caller: T::AccountId = get_account::<T>("//Alice");
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::from(100u32));
+        Signal::<T>::send_rating_signal(RawOrigin::Signed(caller.clone()).into(), target.clone(), 5)?;
 
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone(), 0);
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), target.clone(), 9);
 
-		assert!(RatingSignalList::<T>::contains_key(caller.clone(), target.clone()));
-		assert_eq!(RatingSignalList::<T>::get(caller.clone(), target.clone()), 0);
-		assert_last_event::<T>(Event::RatingSignalSent { who: caller }.into());
+        assert_eq!(RatingSignalList::<T>::get(caller.clone(), target.clone()), 9);
+        frame_system::Pallet::<T>::assert_has_event(<T as pallet::Config>::RuntimeEvent::from(Event::<T>::SignalLockExtended { account: caller.clone(), amount: T::LockPrice::get().into() }).into());
+        frame_system::Pallet::<T>::assert_last_event(<T as pallet::Config>::RuntimeEvent::from(Event::<T>::RatingSignalUpdated { who: caller.clone() }).into());
+        Ok(())
+    }
 
-		Ok(())
-	}
+    #[benchmark]
+    fn revoke_rating_signal() -> Result<(), BenchmarkError> {
+        let target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"TARGET".to_vec()).unwrap();
+        let caller: T::AccountId = get_account::<T>("//Alice");
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::from(100u32));
+        Signal::<T>::send_rating_signal(RawOrigin::Signed(caller.clone()).into(), target.clone(), 5)?;
 
-	#[benchmark]
-	fn update_rating_signal(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
-		let target =
-			BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from("TEST".as_bytes().to_vec())
-				.unwrap();
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), target.clone());
 
-		let caller: T::AccountId = get_account::<T>("//Alice");
-		T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::max_value());
+        assert_eq!(RatingSignalList::<T>::get(caller.clone(), target.clone()), 0);
+        frame_system::Pallet::<T>::assert_has_event(<T as pallet::Config>::RuntimeEvent::from(Event::<T>::SignalUnlock { account: caller.clone() }).into());
+        frame_system::Pallet::<T>::assert_last_event(<T as pallet::Config>::RuntimeEvent::from(Event::<T>::RatingSignalRevoked { who: caller.clone() }).into());
+        Ok(())
+    }
 
-		// Generate a bunch of signals.
-		for i in 0..m {
-			let loop_target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(
-				format!("TEST{}", i).as_bytes().to_vec(),
-			)
-			.unwrap();
-			Signal::<T>::send_rating_signal(
-				RawOrigin::Signed(caller.clone()).into(),
-				loop_target,
-				3,
-			)?;
-		}
+    #[benchmark]
+    fn send_signal() -> Result<(), BenchmarkError> {
+        let signal = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"SIGNAL".to_vec()).unwrap();
+        let caller: T::AccountId = get_account::<T>("//Alice");
 
-		Signal::<T>::send_rating_signal(
-			RawOrigin::Signed(caller.clone()).into(),
-			target.clone(),
-			3,
-		)?;
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), signal.clone());
 
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone(), 1);
+        assert_last_event::<T>(Event::SignalSent { signal, who: caller }.into());
+        Ok(())
+    }
 
-		assert_eq!(RatingSignalList::<T>::get(caller.clone(), target.clone()), 1);
-		assert_last_event::<T>(Event::RatingSignalUpdated { who: caller }.into());
+    #[benchmark]
+    fn send_service_signal() -> Result<(), BenchmarkError> {
+        let service_identifier = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"SERVICE".to_vec()).unwrap();
+        let url = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"URL".to_vec()).unwrap();
+        let caller: T::AccountId = get_account::<T>("//Alice");
 
-		Ok(())
-	}
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), service_identifier.clone(), url.clone());
 
-	#[benchmark]
-	fn revoke_rating_signal(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
-		let target =
-			BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from("TEST".as_bytes().to_vec())
-				.unwrap();
+        assert_last_event::<T>(Event::ServiceSignalSent { service_identifier, url, who: caller }.into());
+        Ok(())
+    }
 
-		let caller = get_origin::<T>("Anakin");
-		let caller_account = get_account::<T>("Anakin");
-		T::Currency::make_free_balance_be(&caller_account, DepositBalanceOf::<T>::max_value());
-
-		for i in 0..m {
-			let loop_target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(
-				format!("TEST{}", i).as_bytes().to_vec(),
-			)
-			.unwrap();
-			Signal::<T>::send_rating_signal(caller.clone().into(), loop_target, 2)?;
-		}
-
-		Signal::<T>::send_rating_signal(caller.clone().into(), target.clone(), 2)?;
-
-		#[extrinsic_call]
-		_(caller, target.clone());
-
-		let caller: T::AccountId = get_account::<T>("Anakin");
-		assert!(!RatingSignalList::<T>::contains_key(caller.clone(), target.clone()));
-		assert_last_event::<T>(Event::RatingSignalRevoked { who: caller }.into());
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn send_signal(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
-		let target =
-			BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from("TEST".as_bytes().to_vec())
-				.unwrap();
-		let caller: T::AccountId = get_account::<T>("//Alice");
-
-		for _ in 0..m {
-			Signal::<T>::send_signal(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
-		}
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone());
-
-		assert_last_event::<T>(Event::SignalSent { who: caller, signal: target }.into());
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn send_service_signal(m: Linear<0, 100_000>) -> Result<(), BenchmarkError> {
-		let service =
-			BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from("TEST".as_bytes().to_vec())
-				.unwrap();
-		let url =
-			BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from("TEST".as_bytes().to_vec())
-				.unwrap();
-		let caller: T::AccountId = get_account::<T>("//Alice");
-
-		for _ in 0..m {
-			Signal::<T>::send_service_signal(
-				RawOrigin::Signed(caller.clone()).into(),
-				service.clone(),
-				url.clone(),
-			)?;
-		}
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), service.clone(), url.clone());
-
-		assert_last_event::<T>(Event::ServiceSignalSent { who: caller, service_identifier: service, url }.into());
-
-		Ok(())
-	}
-
-	impl_benchmark_test_suite!(Signal, crate::mock::new_test_ext(), crate::mock::Test);
+    impl_benchmark_test_suite!(Signal, crate::mock::new_test_ext(), crate::mock::Test);
 }
