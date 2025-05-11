@@ -1,6 +1,6 @@
 use crate as pallet_signal;
 use frame_support::derive_impl;
-use sp_core::ConstU32;
+use sp_core::{ConstU32, ConstU128};
 use sp_runtime::BuildStorage;
 
 pub type Balance = u128;
@@ -43,7 +43,7 @@ impl pallet_balances::Config for Test {
     type Balance = Balance;
     type RuntimeEvent = RuntimeEvent;
     type DustRemoval = ();
-    type ExistentialDeposit = ConstU32<1>;
+    type ExistentialDeposit = ConstU128<1>;
     type AccountStore = System;
     type WeightInfo = ();
     type FreezeIdentifier = [u8; 8];
@@ -53,12 +53,20 @@ impl pallet_balances::Config for Test {
     type DoneSlashHandler = ();
 }
 
+// Define a LockId type for the signal pallet
+pub struct SignalLockId;
+impl frame_support::traits::Get<[u8; 8]> for SignalLockId {
+    fn get() -> [u8; 8] {
+        *b"signal  "
+    }
+}
+
 impl pallet_signal::Config for Test {
     type RuntimeEvent = RuntimeEvent;
     type WeightInfo = ();
     type Currency = Balances;
     type MaxSize = ConstU32<1024>;
-    type LockId = ConstU32<0x7369676e616c2020>; // b"signal  "
+    type LockId = SignalLockId;
     type LockPrice = ConstU32<10>;
 }
 
