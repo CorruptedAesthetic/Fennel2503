@@ -28,7 +28,7 @@ pub mod pallet {
 
     use crate::{weights::WeightInfo, ASSIGNMENT_DOES_NOT_EXIST, ASSIGNMENT_EXISTS};
 
-    type BalanceOf<T> =
+    pub type BalanceOf<T> =
         <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
     #[pallet::config]

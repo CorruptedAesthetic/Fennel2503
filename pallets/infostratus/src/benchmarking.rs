@@ -6,6 +6,8 @@ use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use sp_runtime::BoundedVec;
 use frame_support::traits::Currency;
+use crate::pallet::BalanceOf;
+use sp_runtime::traits::Bounded;
 
 #[benchmarks]
 mod benchmarks {
@@ -16,7 +18,7 @@ mod benchmarks {
         let caller: T::AccountId = whitelisted_caller();
         let resource = BoundedVec::<u8, T::MaxSize>::try_from(b"BENCHMARK_RESOURCE".to_vec()).unwrap();
         // Ensure caller has enough balance
-        T::Currency::make_free_balance_be(&caller, 100u32.into());
+        T::Currency::make_free_balance_be(&caller, BalanceOf::<T>::max_value());
         #[extrinsic_call]
         create_submission_entry(RawOrigin::Signed(caller.clone()), resource.clone());
         // Assert storage
@@ -29,8 +31,8 @@ mod benchmarks {
         let assignee: T::AccountId = whitelisted_caller();
         let resource = BoundedVec::<u8, T::MaxSize>::try_from(b"BENCHMARK_RESOURCE".to_vec()).unwrap();
         // Ensure both have enough balance
-        T::Currency::make_free_balance_be(&poster, 100u32.into());
-        T::Currency::make_free_balance_be(&assignee, 100u32.into());
+        T::Currency::make_free_balance_be(&poster, BalanceOf::<T>::max_value());
+        T::Currency::make_free_balance_be(&assignee, BalanceOf::<T>::max_value());
         // Poster creates submission
         SubmissionsList::<T>::insert(&poster, &resource, false);
         #[extrinsic_call]
