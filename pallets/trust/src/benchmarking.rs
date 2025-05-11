@@ -8,43 +8,35 @@ use frame_benchmarking::{account as benchmark_account, v2::*};
 use frame_support::BoundedVec;
 use frame_system::RawOrigin;
 
-pub fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
-	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
-}
-
 #[benchmarks]
 mod benchmarks {
 	use super::*;
 
 	#[benchmark]
 	fn set_trust_parameter() -> Result<(), BenchmarkError> {
-		let target = BoundedVec::<u8, <T as pallet::Config>::MaxTrustParameterSize>::try_from(
-			"TEST".as_bytes().to_vec(),
-		)
-		.unwrap();
-		let caller: T::AccountId = whitelisted_caller();
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone(), 0);
-
-		assert_eq!(TrustParameterList::<T>::get(&caller, &target), 0);
-		assert_last_event::<T>(Event::TrustParameterSet { who: caller }.into());
-
-		Ok(())
+		let param = BoundedVec::<u8, <T as pallet::Config>::MaxTrustParameterSize>::try_from(b"TEST".to_vec()).unwrap();
+        let caller: T::AccountId = whitelisted_caller();
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), param.clone(), 42);
+        assert_eq!(TrustParameterList::<T>::get(caller.clone(), &param), 42);
+        frame_system::Pallet::<T>::assert_last_event(
+            <T as pallet::Config>::RuntimeEvent::from(Event::<T>::TrustParameterSet { who: caller }).into()
+        );
+        Ok(())
 	}
 
 	#[benchmark]
 	fn issue_trust() -> Result<(), BenchmarkError> {
-		let target: T::AccountId = whitelisted_caller();
 		let caller: T::AccountId = whitelisted_caller();
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone());
-
-		assert_eq!(CurrentIssued::<T>::get(), 1);
-		assert!(TrustIssuance::<T>::contains_key(caller.clone(), target.clone()));
-
-		Ok(())
+        let target: T::AccountId = benchmark_account("target", 0, 0);
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), target.clone());
+        assert_eq!(CurrentIssued::<T>::get(), 1);
+        assert_eq!(TrustIssuance::<T>::get(caller.clone(), target.clone()), Some(0));
+        frame_system::Pallet::<T>::assert_last_event(
+            <T as pallet::Config>::RuntimeEvent::from(Event::<T>::TrustIssued { issuer: caller, target }).into()
+        );
+        Ok(())
 	}
 
 	#[benchmark]
@@ -69,16 +61,16 @@ mod benchmarks {
 
 	#[benchmark]
 	fn revoke_trust() -> Result<(), BenchmarkError> {
-		let target: T::AccountId = whitelisted_caller();
 		let caller: T::AccountId = whitelisted_caller();
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone());
-
-		assert_eq!(CurrentRevoked::<T>::get(), 1);
-		assert!(TrustRevocation::<T>::contains_key(caller.clone(), target.clone()));
-
-		Ok(())
+        let target: T::AccountId = benchmark_account("target", 0, 0);
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), target.clone());
+        assert_eq!(CurrentRevoked::<T>::get(), 1);
+        assert_eq!(TrustRevocation::<T>::get(caller.clone(), target.clone()), Some(0));
+        frame_system::Pallet::<T>::assert_last_event(
+            <T as pallet::Config>::RuntimeEvent::from(Event::<T>::TrustRevoked { issuer: caller, target }).into()
+        );
+        Ok(())
 	}
 
 	#[benchmark]
@@ -109,17 +101,17 @@ mod benchmarks {
 
 	#[benchmark]
 	fn remove_trust() -> Result<(), BenchmarkError> {
-		let target: T::AccountId = whitelisted_caller();
 		let caller: T::AccountId = whitelisted_caller();
-		Trust::<T>::issue_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone());
-
-		assert_eq!(CurrentIssued::<T>::get(), 0);
-		assert!(!TrustIssuance::<T>::contains_key(caller.clone(), target.clone()));
-
-		Ok(())
+        let target: T::AccountId = benchmark_account("target", 0, 0);
+        Trust::<T>::issue_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), target.clone());
+        assert_eq!(CurrentIssued::<T>::get(), 0);
+        assert_eq!(TrustIssuance::<T>::get(caller.clone(), target.clone()), None);
+        frame_system::Pallet::<T>::assert_last_event(
+            <T as pallet::Config>::RuntimeEvent::from(Event::<T>::TrustIssuanceRemoved { issuer: caller, target }).into()
+        );
+        Ok(())
 	}
 
 	#[benchmark]
@@ -145,16 +137,16 @@ mod benchmarks {
 
 	#[benchmark]
 	fn request_trust() -> Result<(), BenchmarkError> {
-		let target: T::AccountId = whitelisted_caller();
 		let caller: T::AccountId = whitelisted_caller();
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone());
-
-		assert_eq!(CurrentRequests::<T>::get(), 1);
-		assert!(TrustRequestList::<T>::contains_key(caller.clone(), target.clone()));
-
-		Ok(())
+        let target: T::AccountId = benchmark_account("target", 0, 0);
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), target.clone());
+        assert_eq!(CurrentRequests::<T>::get(), 1);
+        assert_eq!(TrustRequestList::<T>::get(caller.clone(), target.clone()), Some(0));
+        frame_system::Pallet::<T>::assert_last_event(
+            <T as pallet::Config>::RuntimeEvent::from(Event::<T>::TrustRequest { requester: caller, target }).into()
+        );
+        Ok(())
 	}
 
 	#[benchmark]
@@ -179,17 +171,17 @@ mod benchmarks {
 
 	#[benchmark]
 	fn remove_revoked_trust() -> Result<(), BenchmarkError> {
-		let target: T::AccountId = whitelisted_caller();
 		let caller: T::AccountId = whitelisted_caller();
-		Trust::<T>::revoke_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone());
-
-		assert_eq!(CurrentRevoked::<T>::get(), 0);
-		assert!(!TrustRevocation::<T>::contains_key(caller.clone(), target.clone()));
-
-		Ok(())
+        let target: T::AccountId = benchmark_account("target", 0, 0);
+        Trust::<T>::revoke_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), target.clone());
+        assert_eq!(CurrentRevoked::<T>::get(), 0);
+        assert_eq!(TrustRevocation::<T>::get(caller.clone(), target.clone()), None);
+        frame_system::Pallet::<T>::assert_last_event(
+            <T as pallet::Config>::RuntimeEvent::from(Event::<T>::TrustRevocationRemoved { issuer: caller, target }).into()
+        );
+        Ok(())
 	}
 
 	#[benchmark]
@@ -216,17 +208,17 @@ mod benchmarks {
 
 	#[benchmark]
 	fn cancel_trust_request() -> Result<(), BenchmarkError> {
-		let target: T::AccountId = whitelisted_caller();
 		let caller: T::AccountId = whitelisted_caller();
-		Trust::<T>::request_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
-
-		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), target.clone());
-
-		assert_eq!(CurrentRequests::<T>::get(), 0);
-		assert!(!TrustRequestList::<T>::contains_key(caller.clone(), target.clone()));
-
-		Ok(())
+        let target: T::AccountId = benchmark_account("target", 0, 0);
+        Trust::<T>::request_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
+        #[extrinsic_call]
+        _(RawOrigin::Signed(caller.clone()), target.clone());
+        assert_eq!(CurrentRequests::<T>::get(), 0);
+        assert_eq!(TrustRequestList::<T>::get(caller.clone(), target.clone()), None);
+        frame_system::Pallet::<T>::assert_last_event(
+            <T as pallet::Config>::RuntimeEvent::from(Event::<T>::TrustRequestRemoved { requester: caller, target }).into()
+        );
+        Ok(())
 	}
 
 	#[benchmark]
@@ -234,18 +226,17 @@ mod benchmarks {
 		for i in 0..m {
 			let target: T::AccountId = benchmark_account("target", i, 0);
 			let caller: T::AccountId = benchmark_account("caller", i, 0);
-			Trust::<T>::request_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
+			if i != 14 {
+				Trust::<T>::request_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
+			}
 		}
-
 		let target: T::AccountId = benchmark_account("target", 14, 0);
 		let caller: T::AccountId = benchmark_account("caller", 14, 0);
-
+		Trust::<T>::request_trust(RawOrigin::Signed(caller.clone()).into(), target.clone())?;
 		#[extrinsic_call]
 		cancel_trust_request(RawOrigin::Signed(caller.clone()), target.clone());
-
 		assert_eq!(CurrentRequests::<T>::get(), m.saturating_sub(1));
 		assert!(!TrustRequestList::<T>::contains_key(caller.clone(), target.clone()));
-
 		Ok(())
 	}
 
