@@ -1,0 +1,80 @@
+* [33m7f2271a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mTEST[m[33m)[m prebenchmarkingcli
+* [33m68c5b60[m validatormanagerbenchmarking
+* [33m0ba177a[m validatormanagertests
+* [33m9502bcb[m validatormanagermock
+* [33mf1c5cee[m trustbenchmarking
+* [33m3a13a0e[m trustmocktests
+* [33m4574e44[m signalbenchmarking.rs
+* [33m82fdca1[m signaltests
+* [33m1b3f605[m signalmock
+* [33m926aa23[m keystorebenchmarking
+* [33mf1b3752[m keystoretests
+* [33mbc53b70[m keystoremock
+* [33mad5c3ae[m infostratuscargobuildsucc
+* [33mb1d1d5e[m infostratusmockandtests
+* [33m355d38f[m identitypalletcargobuildsucc
+* [33m217c4a2[m identitypalletmocktestscargotestsucc
+* [33m82e1910[m Consistent origin conversion
+* [33m1943f64[m Edge‑case error benchmark
+* [33macb19d8[m Explicit worst‑case sizing
+* [33m8810cdd[m ?Consistent origin conversion
+* [33m55d4ec7[m ?insteadofunwrap
+* [33me3d396a[m identitybenchmarkingupgrade
+* [33m5a4ea69[m finalizedtesting
+* [33m4bb1f40[m Non‑existent identity errors
+* [33m3700ebf[m Identity number after revocation
+* [33m30454ee[m benchmarkingworkoncertificateandid
+* [33m45dfe85[m certificate mocktestbm identity mock
+* [33m604b2ed[m refactor: update all relevant tests to struct-style events and modern conventions
+* [33m564c53b[m Align certificate pallet events and benchmarking.rs with stable-2503 struct-style events and remove unused imports
+* [33ma8008b2[m WIP: changes in runtime/lib.rs
+* [33m73bf3d5[m[33m ([m[1;32mnog-validator-manager-testnet-fennelpallet[m[33m)[m Enable runtime benchmarking for all custom pallets
+* [33m9487387[m[33m ([m[1;32msolochain2503branch[m[33m)[m  trust pallet integration
+* [33mac9b58a[m progress on trust pallet integration and workspace config
+* [33m41fc396[m chore: save progress on nog-validator-manager-testnet-fennelpallet
+* [33m7708be2[m integrate and configure signal pallet in workspace and runtime
+* [33m7ae92d3[m integrate and update signal pallet to stable2503 pattern and fix weight usage
+* [33m8a5586d[m  integrate and update infostratus pallet, runtime config, and dependencies
+* [33mc97956f[m chore: integrate and update infostratus pallet to stable2503 pattern
+* [33md075a1c[m chore: integrate keystore pallet and update runtime dependencies
+* [33mcfd4545[m chore: update keystore pallet to FRAME v2, workspace inheritance, and add weights
+* [33mbe5e1b2[m chore: compile and integrate identity pallet, update runtime config, and fix build issues
+* [33mc4ee3e6[m feat: update identity pallet for workspace inheritance, event struct variants, and formatting
+* [33mea1da77[m feat: refactor identity pallet for workspace inheritance, event struct variants, and formatting
+* [33m904c8b4[m feat: integrate certificate pallet into runtime, set LockPrice as u32 max, and update configs
+* [33m804933c[m feat: integrate certificate pallet into runtime, set LockPrice as u32 max, and update configs
+* [33m4070211[m feat: integrate certificate pallet into runtime and update dependencies
+* [33m652cf0a[m fix: update certificate pallet for workspace inheritance, event struct variants, and Cargo.toml quoting
+* [33m642c8ed[m[33m ([m[1;32mnog-validator-manager-testnet[m[33m)[m Update validator management instructions and scripts for dynamic 5-node testnet setup
+* [33m08aa700[m[33m ([m[1;32mnog-validator-manager[m[33m)[m factored validatormanager to 5302
+* [33me1546e9[m[33m ([m[1;31mfennelsolonet2/main[m[33m)[m 2503 spio dep fixing
+* [33m5e2386b[m[33m ([m[1;32mexperimental/solochain-2503-test-session[m[33m)[m session implement 2503
+* [33m7582c5e[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmaster[m[33m)[m Update the solochain template to stable2503 (#24)
+* [33m1af6d76[m Update the solochain template to stable2412-4 (#23)
+* [33me4c83d4[m Update the solochain template to stable2412 (#18)
+* [33m93f30a2[m Update the solochain template to stable2409 (#14)
+* [33m8599efc[m[33m ([m[1;33mtag: [m[1;33mv0.0.2[m[33m)[m Add a CI job to make sure relaychain produces blocks (#11)
+* [33maf8901f[m Add missing features (#10)
+* [33m1c62506[m Add an automatic PR reminder (#9)
+* [33mef08431[m added `macos` ci step (#8)
+* [33m94e47b6[m Update to stable2407 triggered by workflow_dispatch
+* [33ma41ab75[m Skip WASM build for tests and docs (#7)
+* [33ma9e0db2[m Update to 1.14.0 triggered by workflow_dispatch
+*   [33m0360134[m[33m ([m[1;33mtag: [m[1;33mv0.0.1[m[33m)[m Merge pull request #4 from paritytech/yuri/release-ci
+[32m|[m[33m\[m  
+[32m|[m * [33m726f3b6[m Building and binaries and docker images to release
+[32m|[m[32m/[m  
+[32m|[m * [33mf5608df[m[33m ([m[1;31morigin/update-template/1.14.0[m[33m)[m [create-pull-request] automated change
+[32m|[m[32m/[m  
+* [33mbbda051[m Update to 1.13.0 triggered by workflow_dispatch
+* [33m5ece085[m Build Dockerfile on CI (#3)
+* [33m22576ee[m Update to 1.13.0 triggered by workflow_dispatch
+* [33m8ef4cfc[m Run clippy and build docs on CI (#2)
+* [33m262be0c[m Update template triggered by workflow_dispatch
+* [33m6e0caef[m Update template triggered by workflow_dispatch
+* [33m7321ef7[m Update template triggered by workflow_dispatch
+* [33m2273aab[m Update template triggered by workflow_dispatch
+* [33m39712f5[m move files
+* [33me296562[m Create ci.yml
+* [33m46081e8[m Create .gitignore
+* [33mec4572b[m Initial commit

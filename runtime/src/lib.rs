@@ -245,7 +245,7 @@ impl pallet_certificate::Config for Runtime {
 impl pallet_identity::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
-    type MaxSize = ConstU32<64>; // Adjust as needed for your use case
+    type MaxSize = ConstU32<1024>; // Updated to match benchmarking expectation
 }
 
 // Implement the Config trait for the keystore pallet in the runtime

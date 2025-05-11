@@ -28,10 +28,10 @@ use frame_support::{
 
 /// Weight functions needed for pallet_certificate.
 pub trait WeightInfo {
-	fn send_certificate() -> Weight;
-	fn send_certificate_heavy_storage() -> Weight;
-	fn revoke_certificate() -> Weight;
-	fn revoke_certificate_heavy_storage() -> Weight;
+	fn create_submission_entry() -> Weight;
+	fn request_submission_assignment() -> Weight;
+	fn send_submission() -> Weight;
+	fn revoke_submission() -> Weight;
 }
 
 /// Weights for pallet_certificate using the Substrate node and recommended hardware.
@@ -40,7 +40,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Storage: `Certificate::CertificateList` (r:1 w:1)
 	/// Proof: `Certificate::CertificateList` (`max_values`: None, `max_size`: Some(97), added:
 	/// 2572, mode: `MaxEncodedLen`)
-	fn send_certificate() -> Weight {
+	fn create_submission_entry() -> Weight {
 		Weight::from_parts(13_000_000, 3562)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
@@ -48,26 +48,16 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Storage: `Certificate::CertificateList` (r:1 w:1)
 	/// Proof: `Certificate::CertificateList` (`max_values`: None, `max_size`: Some(97), added:
 	/// 2572, mode: `MaxEncodedLen`)
-	fn send_certificate_heavy_storage() -> Weight {
-		Weight::from_parts(38_000_000, 3562)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
-	/// Storage: `Certificate::CertificateList` (r:1 w:1)
-	/// Proof: `Certificate::CertificateList` (`max_values`: None, `max_size`: Some(97), added:
-	/// 2572, mode: `MaxEncodedLen`)
-	fn revoke_certificate() -> Weight {
+	fn request_submission_assignment() -> Weight {
 		Weight::from_parts(15_000_000, 3562)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: `Certificate::CertificateList` (r:1 w:1)
-	/// Proof: `Certificate::CertificateList` (`max_values`: None, `max_size`: Some(97), added:
-	/// 2572, mode: `MaxEncodedLen`)
-	fn revoke_certificate_heavy_storage() -> Weight {
-		Weight::from_parts(39_000_000, 3562)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
+	fn send_submission() -> Weight {
+		Weight::from_parts(5_000_000, 1000)
+	}
+	fn revoke_submission() -> Weight {
+		Weight::from_parts(5_000_000, 1000)
 	}
 }
 
@@ -76,7 +66,7 @@ impl WeightInfo for () {
 	/// Storage: `Certificate::CertificateList` (r:1 w:1)
 	/// Proof: `Certificate::CertificateList` (`max_values`: None, `max_size`: Some(97), added:
 	/// 2572, mode: `MaxEncodedLen`)
-	fn send_certificate() -> Weight {
+	fn create_submission_entry() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `80`
 		//  Estimated: `3562`
@@ -88,19 +78,7 @@ impl WeightInfo for () {
 	/// Storage: `Certificate::CertificateList` (r:1 w:1)
 	/// Proof: `Certificate::CertificateList` (`max_values`: None, `max_size`: Some(97), added:
 	/// 2572, mode: `MaxEncodedLen`)
-	fn send_certificate_heavy_storage() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1725`
-		//  Estimated: `3562`
-		// Minimum execution time: 33_000_000 picoseconds.
-		Weight::from_parts(38_000_000, 3562)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `Certificate::CertificateList` (r:1 w:1)
-	/// Proof: `Certificate::CertificateList` (`max_values`: None, `max_size`: Some(97), added:
-	/// 2572, mode: `MaxEncodedLen`)
-	fn revoke_certificate() -> Weight {
+	fn request_submission_assignment() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `203`
 		//  Estimated: `3562`
@@ -109,16 +87,10 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(1_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
-	/// Storage: `Certificate::CertificateList` (r:1 w:1)
-	/// Proof: `Certificate::CertificateList` (`max_values`: None, `max_size`: Some(97), added:
-	/// 2572, mode: `MaxEncodedLen`)
-	fn revoke_certificate_heavy_storage() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1742`
-		//  Estimated: `3562`
-		// Minimum execution time: 35_000_000 picoseconds.
-		Weight::from_parts(39_000_000, 3562)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
+	fn send_submission() -> Weight {
+		Weight::from_parts(5_000_000, 1000)
+	}
+	fn revoke_submission() -> Weight {
+		Weight::from_parts(5_000_000, 1000)
 	}
 }

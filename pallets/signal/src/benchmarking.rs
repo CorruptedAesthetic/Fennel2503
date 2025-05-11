@@ -7,6 +7,7 @@ use frame_benchmarking::{account as benchmark_account, v2::*};
 use frame_support::{traits::Currency, BoundedVec};
 use frame_support::traits::Get;
 use frame_system::RawOrigin;
+use frame_support::sp_runtime::traits::Bounded;
 
 pub fn get_account<T: Config>(name: &'static str) -> T::AccountId {
     benchmark_account(name, 0, 0)
@@ -31,6 +32,7 @@ mod benchmarks {
     fn set_signal_parameter() -> Result<(), BenchmarkError> {
         let name = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"PARAM".to_vec()).unwrap();
         let caller: T::AccountId = get_account::<T>("//Alice");
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::from(10_000u32));
 
         #[extrinsic_call]
         _(RawOrigin::Signed(caller.clone()), name.clone(), 42);
@@ -45,7 +47,9 @@ mod benchmarks {
     fn send_rating_signal() -> Result<(), BenchmarkError> {
         let target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"TARGET".to_vec()).unwrap();
         let caller: T::AccountId = get_account::<T>("//Alice");
-        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::from(100u32));
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::max_value());
+        let balance = T::Currency::free_balance(&caller);
+        frame_support::runtime_print!("send_rating_signal: balance before call: {:?}", balance);
 
         #[extrinsic_call]
         _(RawOrigin::Signed(caller.clone()), target.clone(), 5);
@@ -61,8 +65,13 @@ mod benchmarks {
     fn update_rating_signal() -> Result<(), BenchmarkError> {
         let target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"TARGET".to_vec()).unwrap();
         let caller: T::AccountId = get_account::<T>("//Alice");
-        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::from(100u32));
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::max_value());
+        let balance = T::Currency::free_balance(&caller);
+        frame_support::runtime_print!("update_rating_signal: balance before setup call: {:?}", balance);
         Signal::<T>::send_rating_signal(RawOrigin::Signed(caller.clone()).into(), target.clone(), 5)?;
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::max_value());
+        let balance = T::Currency::free_balance(&caller);
+        frame_support::runtime_print!("update_rating_signal: balance before main call: {:?}", balance);
 
         #[extrinsic_call]
         _(RawOrigin::Signed(caller.clone()), target.clone(), 9);
@@ -77,8 +86,13 @@ mod benchmarks {
     fn revoke_rating_signal() -> Result<(), BenchmarkError> {
         let target = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"TARGET".to_vec()).unwrap();
         let caller: T::AccountId = get_account::<T>("//Alice");
-        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::from(100u32));
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::max_value());
+        let balance = T::Currency::free_balance(&caller);
+        frame_support::runtime_print!("revoke_rating_signal: balance before setup call: {:?}", balance);
         Signal::<T>::send_rating_signal(RawOrigin::Signed(caller.clone()).into(), target.clone(), 5)?;
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::max_value());
+        let balance = T::Currency::free_balance(&caller);
+        frame_support::runtime_print!("revoke_rating_signal: balance before main call: {:?}", balance);
 
         #[extrinsic_call]
         _(RawOrigin::Signed(caller.clone()), target.clone());
@@ -93,6 +107,7 @@ mod benchmarks {
     fn send_signal() -> Result<(), BenchmarkError> {
         let signal = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"SIGNAL".to_vec()).unwrap();
         let caller: T::AccountId = get_account::<T>("//Alice");
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::from(10_000u32));
 
         #[extrinsic_call]
         _(RawOrigin::Signed(caller.clone()), signal.clone());
@@ -106,6 +121,7 @@ mod benchmarks {
         let service_identifier = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"SERVICE".to_vec()).unwrap();
         let url = BoundedVec::<u8, <T as pallet::Config>::MaxSize>::try_from(b"URL".to_vec()).unwrap();
         let caller: T::AccountId = get_account::<T>("//Alice");
+        T::Currency::make_free_balance_be(&caller, DepositBalanceOf::<T>::from(10_000u32));
 
         #[extrinsic_call]
         _(RawOrigin::Signed(caller.clone()), service_identifier.clone(), url.clone());
