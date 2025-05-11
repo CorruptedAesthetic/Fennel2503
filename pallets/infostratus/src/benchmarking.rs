@@ -1,47 +1,43 @@
-//! Benchmarking setup for pallet-template
+//! Benchmarking setup for pallet-infostratus
 #![cfg(feature = "runtime-benchmarks")]
 
 use super::*;
-use crate::Pallet as Infostratus;
-
-use frame_benchmarking::{account as benchmark_account, v2::*};
-use frame_support::BoundedVec;
+use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
-use scale_info::prelude::format;
-
-pub fn get_account<T: Config>(name: &'static str) -> T::AccountId {
-    let account: T::AccountId = benchmark_account(name, 0, 0);
-    account
-}
+use sp_runtime::BoundedVec;
+use frame_support::traits::Currency;
 
 #[benchmarks]
 mod benchmarks {
     use super::*;
 
     #[benchmark]
-    fn create_submission_entry() -> Result<(), BenchmarkError> {
-        let who = get_account::<T>("Alice");
-        let data: BoundedVec<u8, T::MaxSize> = b"testdata".to_vec().try_into().unwrap();
+    fn create_submission_entry() {
+        let caller: T::AccountId = whitelisted_caller();
+        let resource = BoundedVec::<u8, T::MaxSize>::try_from(b"BENCHMARK_RESOURCE".to_vec()).unwrap();
+        // Ensure caller has enough balance
+        T::Currency::make_free_balance_be(&caller, 100u32.into());
         #[extrinsic_call]
-        _(RawOrigin::Signed(who.clone()), data.clone());
-        // Assert that the submission was created in storage
-        assert!(Infostratus::<T>::submissions_list(&who, &data));
-        Ok(())
+        create_submission_entry(RawOrigin::Signed(caller.clone()), resource.clone());
+        // Assert storage
+        assert!(SubmissionsList::<T>::contains_key(&caller, &resource));
     }
 
     #[benchmark]
-    fn request_submission_assignment() -> Result<(), BenchmarkError> {
-        let who = get_account::<T>("Alice");
-        let poster = get_account::<T>("Bob");
-        let data: BoundedVec<u8, T::MaxSize> = b"testdata".to_vec().try_into().unwrap();
-        // Pre-insert a submission for the poster
-        Infostratus::<T>::create_submission_entry(RawOrigin::Signed(poster.clone()).into(), data.clone()).ok();
+    fn request_submission_assignment() {
+        let poster: T::AccountId = account("poster", 0, 0);
+        let assignee: T::AccountId = whitelisted_caller();
+        let resource = BoundedVec::<u8, T::MaxSize>::try_from(b"BENCHMARK_RESOURCE".to_vec()).unwrap();
+        // Ensure both have enough balance
+        T::Currency::make_free_balance_be(&poster, 100u32.into());
+        T::Currency::make_free_balance_be(&assignee, 100u32.into());
+        // Poster creates submission
+        SubmissionsList::<T>::insert(&poster, &resource, false);
         #[extrinsic_call]
-        _(RawOrigin::Signed(who.clone()), poster.clone(), data.clone());
-        // Assert that the assignment was processed in storage
-        assert!(Infostratus::<T>::assignments_list(&who, &data));
-        assert!(Infostratus::<T>::submissions_list(&poster, &data));
-        Ok(())
+        request_submission_assignment(RawOrigin::Signed(assignee.clone()), poster.clone(), resource.clone());
+        // Assert storage
+        assert!(AssignmentsList::<T>::contains_key(&assignee, &resource));
+        assert!(SubmissionsList::<T>::contains_key(&poster, &resource));
     }
 
     impl_benchmark_test_suite!(Infostratus, crate::mock::new_test_ext(), crate::mock::Test);
