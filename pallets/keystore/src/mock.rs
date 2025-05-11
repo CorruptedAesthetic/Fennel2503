@@ -1,5 +1,5 @@
 use crate as pallet_keystore;
-use frame_support::{derive_impl, parameter_types};
+use frame_support::derive_impl;
 use sp_core::ConstU32;
 use sp_runtime::BuildStorage;
 
