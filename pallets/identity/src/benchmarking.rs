@@ -4,6 +4,7 @@
 
 use crate::{Config};
 use frame_benchmarking::v2::*;
+use scale_info::prelude::vec;
 
 #[benchmarks(
     where
