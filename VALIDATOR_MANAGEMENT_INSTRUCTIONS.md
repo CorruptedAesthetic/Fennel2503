@@ -61,7 +61,15 @@ rm -rf /tmp/alice /tmp/bob /tmp/charlie /tmp/dave /tmp/eve
   - Replace `<RPC_PORT>` with the node's RPC port (e.g., 9946 for Charlie).
   - Copy the returned hex string (e.g., `0x...`).
 
+  Alternatively: 
+
+Connect Polkadot.js Apps to Charlie's node (e.g., ws://127.0.0.1:9946).
+In Polkadot.js Apps, go to Developer → RPC calls and use author_rotateKeys() to generate new session keys on Charlie's node.
+This returns a hex string (e.g., 0x...), which is the public part of the new session keys.
+Copy the returned hex string.
+
 ### b. Set Session Keys On-Chain
+- go on alice's node (boot) 
 - In Polkadot.js Apps, go to **Developer → Extrinsics**.
 - Select the validator's own account (e.g., Charlie) as the sender.
 - Choose the `session` pallet and the `setKeys` extrinsic.
@@ -73,6 +81,7 @@ rm -rf /tmp/alice /tmp/bob /tmp/charlie /tmp/dave /tmp/eve
 ---
 
 ## 3. Register Validators On-Chain
+- While still on alice's account (boot) 
 - In Polkadot.js Apps, go to **Developer → Sudo**.
 - Select the `validatorManager` pallet and the `registerValidators` extrinsic.
 - Enter the AccountIds for Charlie, Dave, and Eve as an array, e.g.:
@@ -88,7 +97,7 @@ rm -rf /tmp/alice /tmp/bob /tmp/charlie /tmp/dave /tmp/eve
 ---
 
 ## 4. Wait for Session Rotation
-- After 1–2 session rotations (typically a few blocks), the new validators will be added to the active set.
+- After 1–2 session rotations (typically a few blocks), the new validators will be added to the active set. You can modify the session rotate times if needed.
 
 ---
 
@@ -136,3 +145,22 @@ rm -rf /tmp/alice /tmp/bob /tmp/charlie /tmp/dave /tmp/eve
 ---
 
 **You can repeat this process to add or remove any validator at runtime.**
+
+
+Changing the session rotation times:
+How to change session rotation time:
+
+Locate the session length parameter in your runtime:
+
+In your runtime code (usually in lib.rs), look for a parameter like:
+The name might be SessionPeriod, SessionsPerEra, or similar.
+Update the value:
+
+Change the value to your desired number of blocks per session. For example, to rotate every 20 blocks:
+Ensure the session pallet uses this parameter:
+
+In your session pallet config, you should see:
+If you use PeriodicSessions, the first argument is the session period.
+Rebuild your runtime:
+
+Restart your nodes with the new runtime.
