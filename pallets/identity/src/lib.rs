@@ -117,7 +117,7 @@ pub mod pallet {
             Self::deposit_event(Event::IdentityRevoked { identity_id, owner: who.clone() });
             Ok(().into())
         }
-        #[pallet::weight(T::WeightInfo::add_or_update_identity_trait())]
+        #[pallet::weight(T::WeightInfo::add_or_update_identity_trait(key.len() as u32))]
         #[pallet::call_index(2)]
         pub fn add_or_update_identity_trait(
             origin: OriginFor<T>,
@@ -127,14 +127,14 @@ pub mod pallet {
         ) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
             ensure!(Self::is_identity_owned_by_sender(&who, &identity_id), Error::<T>::IdentityNotOwned);
-            <IdentityTraitList<T>>::try_mutate(identity_id, key, |v| -> DispatchResult {
+            <IdentityTraitList<T>>::try_mutate(identity_id, key.clone(), |v| -> DispatchResult {
                 *v = value;
                 Ok(())
             })?;
             Self::deposit_event(Event::IdentityUpdated { identity_id, owner: who.clone() });
             Ok(().into())
         }
-        #[pallet::weight(T::WeightInfo::remove_identity_trait())]
+        #[pallet::weight(T::WeightInfo::remove_identity_trait(key.len() as u32))]
         #[pallet::call_index(3)]
         pub fn remove_identity_trait(
             origin: OriginFor<T>,
@@ -143,7 +143,7 @@ pub mod pallet {
         ) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
             ensure!(Self::is_identity_owned_by_sender(&who, &identity_id), Error::<T>::IdentityNotOwned);
-            <IdentityTraitList<T>>::remove(identity_id, key);
+            <IdentityTraitList<T>>::remove(identity_id, key.clone());
             Self::deposit_event(Event::IdentityUpdated { identity_id, owner: who.clone() });
             Ok(().into())
         }
