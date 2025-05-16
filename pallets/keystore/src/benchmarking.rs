@@ -49,5 +49,5 @@ mod benchmarks {
         frame_system::Pallet::<T>::assert_last_event(Event::EncryptionKeyIssued { who: caller }.into());
     }
 
-    impl_benchmark_test_suite!(Keystore, crate::mock::new_test_ext(), crate::mock::Test);
+    impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);
 }
