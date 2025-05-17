@@ -2,12 +2,13 @@ name: Srtool build
 
 on:
   push:
-    branches: [ main, master ]
-    paths:
-      - 'runtime/**'
+    # Uncomment branches and paths when merging to main
+    # branches: [ main, master ]
+    # paths:
+    #   - 'runtime/**'
   pull_request:
-    paths:
-      - 'runtime/**'
+    # paths:
+    #   - 'runtime/**'
   # Allow manual trigger
   workflow_dispatch:
 
