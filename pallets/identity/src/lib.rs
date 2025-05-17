@@ -96,8 +96,8 @@ pub mod pallet {
                 Ok(())
             })?;
             let new_id: u32 = <IdentityNumber<T>>::get();
-            ensure!(!<IdentityList<T>>::contains_key(&current_id), Error::<T>::StorageOverflow);
-            <IdentityList<T>>::try_mutate(&current_id, |owner| -> DispatchResult {
+            ensure!(!<IdentityList<T>>::contains_key(current_id), Error::<T>::StorageOverflow);
+            <IdentityList<T>>::try_mutate(current_id, |owner| -> DispatchResult {
                 *owner = Some(who.clone());
                 Ok(())
             })?;
@@ -110,7 +110,7 @@ pub mod pallet {
         pub fn revoke_identity(origin: OriginFor<T>, identity_id: u32) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
             ensure!(Self::is_identity_owned_by_sender(&who, &identity_id), Error::<T>::IdentityNotOwned);
-            <IdentityList<T>>::try_mutate(&identity_id, |owner| -> DispatchResult {
+            <IdentityList<T>>::try_mutate(identity_id, |owner| -> DispatchResult {
                 *owner = None;
                 Ok(())
             })?;

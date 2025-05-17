@@ -150,9 +150,9 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
     .unwrap();
     pallet_session::GenesisConfig::<Test> {
         keys: vec![
-            (ValidatorId(1).into(), ValidatorId(1), UintAuthorityId(1)),
-            (ValidatorId(2).into(), ValidatorId(2), UintAuthorityId(2)),
-            (ValidatorId(3).into(), ValidatorId(3), UintAuthorityId(3)),
+            (ValidatorId(1), ValidatorId(1), UintAuthorityId(1)),
+            (ValidatorId(2), ValidatorId(2), UintAuthorityId(2)),
+            (ValidatorId(3), ValidatorId(3), UintAuthorityId(3)),
         ],
         non_authority_keys: vec![],
     }
