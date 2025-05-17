@@ -1,45 +1,29 @@
 name: Srtool build
 
-on:
-  push:
-    # Uncomment branches and paths when merging to main
-    # branches: [ main, master ]
-    # paths:
-    #   - 'runtime/**'
-  pull_request:
-    # paths:
-    #   - 'runtime/**'
-  # Allow manual trigger
-  workflow_dispatch:
+on: push
 
 jobs:
   srtool:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        runtime: ["solochain"]
     steps:
       - uses: actions/checkout@v3
-      
       - name: Srtool build
         id: srtool_build
         uses: chevdor/srtool-actions@v0.8.0
         with:
-          chain: ${{ matrix.runtime }}
+          chain: solochain
           runtime_dir: runtime
           package: solochain-template-runtime
-          
-      - name: Store srtool digest
+      - name: Summary
         run: |
-          echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.runtime }}-srtool-digest.json
-          cat ${{ matrix.runtime }}-srtool-digest.json
+          echo '${{ steps.srtool_build.outputs.json }}' | jq . > solochain-srtool-digest.json
+          cat solochain-srtool-digest.json
           echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}"
-          
-      - name: Upload srtool artifacts
-        uses: actions/upload-artifact@v3
+      - name: Archive Runtime
+        uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.runtime }}-runtime-${{ github.sha }}
+          name: solochain-runtime-${{ github.sha }}
           path: |
             ${{ steps.srtool_build.outputs.wasm }}
             ${{ steps.srtool_build.outputs.wasm_compressed }}
-            ${{ matrix.runtime }}-srtool-digest.json
+            solochain-srtool-digest.json
