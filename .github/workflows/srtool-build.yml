@@ -9,20 +9,13 @@ jobs:
       - uses: actions/checkout@v3
       - name: Srtool build
         id: srtool_build
-        uses: chevdor/srtool-actions@v0.9.2
+        uses: chevdor/srtool-actions@v0.8.0
         with:
           chain: solochain
           runtime_dir: runtime
           package: solochain-template-runtime
       - name: Summary
         run: |
-          echo '${{ steps.srtool_build.outputs.json }}' | jq . > srtool-digest.json
-          cat srtool-digest.json
-          echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}"
-      - name: Archive Runtime
-        uses: actions/upload-artifact@v2.3.1
-        with:
-          name: solochain-runtime-${{ github.sha }}
-          path: |
-            ${{ steps.srtool_build.outputs.wasm }}
-            srtool-digest.json 
+          echo '${{ steps.srtool_build.outputs.json }}' | jq . > solochain-srtool-digest.json
+          cat solochain-srtool-digest.json
+          echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}" 
