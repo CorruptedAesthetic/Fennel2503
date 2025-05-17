@@ -26,7 +26,7 @@ jobs:
           cat srtool-digest.json
           echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}"
       - name: Archive Runtime
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: solochain-runtime-${{ github.sha }}
           path: |
