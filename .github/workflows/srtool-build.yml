@@ -6,7 +6,7 @@ jobs:
   srtool:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Srtool build
         id: srtool_build
@@ -23,7 +23,7 @@ jobs:
           echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}"
           
       - name: Archive Runtime
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: solochain-runtime-${{ github.sha }}
           path: |
