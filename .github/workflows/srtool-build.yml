@@ -1,0 +1,21 @@
+name: Srtool build
+
+on: push
+
+jobs:
+  srtool:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Srtool build
+        id: srtool_build
+        uses: chevdor/srtool-actions@v0.8.0
+        with:
+          chain: solochain
+          runtime_dir: runtime
+          package: solochain-template-runtime
+      - name: Summary
+        run: |
+          echo '${{ steps.srtool_build.outputs.json }}' | jq . > solochain-srtool-digest.json
+          cat solochain-srtool-digest.json
+          echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}" 
