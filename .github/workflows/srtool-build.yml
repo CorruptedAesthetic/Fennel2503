@@ -25,10 +25,16 @@ jobs:
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > srtool-digest.json
           cat srtool-digest.json
           echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}"
-      - name: Archive Runtime
+          # Store output file locations for use in the next step
+          echo "WASM_STANDARD=${{ steps.srtool_build.outputs.wasm_standard }}" >> $GITHUB_ENV
+          echo "WASM_COMPRESSED=${{ steps.srtool_build.outputs.wasm_compressed }}" >> $GITHUB_ENV
+          echo "WASM=${{ steps.srtool_build.outputs.wasm }}" >> $GITHUB_ENV
+      - name: Archive Runtime Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: solochain-runtime-${{ github.sha }}
           path: |
-            ${{ steps.srtool_build.outputs.wasm }}
+            ${{ env.WASM }}
+            ${{ env.WASM_STANDARD }}
+            ${{ env.WASM_COMPRESSED }}
             srtool-digest.json 
