@@ -45,9 +45,9 @@ jobs:
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > solochain-srtool-digest.json
           cat solochain-srtool-digest.json
       
-      # Archive artifacts
+      # Archive artifacts - UPDATED FROM v2 TO v3
       - name: Archive Runtime
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3  # Changed from v2 to v3
         with:
           name: solochain-runtime-${{ github.sha }}
           path: |
