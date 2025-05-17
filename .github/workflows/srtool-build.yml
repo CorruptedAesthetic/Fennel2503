@@ -26,7 +26,7 @@ jobs:
         with:
           chain: ${{ matrix.runtime }}
           runtime_dir: runtime
-          package: solochain-runtime
+          package: solochain-template-runtime
           
       - name: Store srtool digest
         run: |
