@@ -23,7 +23,7 @@ jobs:
           echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}"
           
       - name: Archive Runtime
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: solochain-runtime-${{ github.sha }}
           path: |
