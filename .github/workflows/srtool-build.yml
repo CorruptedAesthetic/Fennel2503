@@ -7,15 +7,50 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      
       - name: Srtool build
         id: srtool_build
         uses: chevdor/srtool-actions@v0.8.0
+        env:
+          # These are passed to the srtool Docker container
+          PACKAGE: solochain-template-runtime
+          RUNTIME_DIR: runtime
+          # Optional: pass custom build flags to cargo
+          BUILD_OPTS: "--features on-chain-release-build"
+          # Optional: set custom timeout (default is 1h)
+          COMMAND_TIMEOUT: "3600"  # in seconds
         with:
           chain: solochain
           runtime_dir: runtime
           package: solochain-template-runtime
-      - name: Summary
+      
+      # Detailed report section    
+      - name: Detailed Report
+        run: |
+          echo "=================================================================="
+          echo "Srtool Build Report:"
+          echo "=================================================================="
+          echo "Runtime Version: ${{ steps.srtool_build.outputs.version }}"
+          echo "Proposal Hash: ${{ steps.srtool_build.outputs.proposal_hash }}"
+          echo "WASM File: ${{ steps.srtool_build.outputs.wasm }}"
+          echo "WASM Compressed: ${{ steps.srtool_build.outputs.wasm_compressed }}"
+          echo "WASM SHA256: ${{ steps.srtool_build.outputs.wasm_sha256 }}"
+          echo "WASM Size: ${{ steps.srtool_build.outputs.wasm_size }} bytes"
+          echo "Build Opts: ${{ env.BUILD_OPTS }}"
+          echo "=================================================================="
+      
+      # JSON digest section
+      - name: JSON Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > solochain-srtool-digest.json
           cat solochain-srtool-digest.json
-          echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}" 
+      
+      # Archive artifacts
+      - name: Archive Runtime
+        uses: actions/upload-artifact@v2
+        with:
+          name: solochain-runtime-${{ github.sha }}
+          path: |
+            ${{ steps.srtool_build.outputs.wasm }}
+            ${{ steps.srtool_build.outputs.wasm_compressed }}
+            solochain-srtool-digest.json
