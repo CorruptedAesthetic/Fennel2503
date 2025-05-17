@@ -1,0 +1,30 @@
+[settings]
+timeout = 1000
+
+[relaychain]
+default_command = "/home/neurosx/WORKING_WORKSPACE/StandaloneSolochain2503/solochain/target/release/solochain-template-node"
+default_args = ["--dev", "--prometheus-external"]
+chain = "dev"
+
+# Public-facing RPC node (Alice)
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+rpc_port = 9944
+rpc_cors = "all"  # In production, limit this to specific origins
+rpc_methods = "unsafe"  # In production, use "safe" instead
+prometheus_port = 9615
+rpc_external = true  # Expose RPC for external connections
+unsafe_rpc_external = true  # In production, consider removing this
+listen_addr = "/ip4/0.0.0.0/tcp/30333"
+
+# Validator node with limited exposure (Bob)
+[[relaychain.nodes]]
+name = "bob"
+validator = true
+rpc_port = 9945
+rpc_cors = "all"  # Restrict to localhost only
+rpc_methods = "unsafe"  # Only expose safe RPC methods
+prometheus_port = 9616
+# No rpc_external flag - RPC not exposed publicly
+listen_addr = "/ip4/0.0.0.0/tcp/30334" 

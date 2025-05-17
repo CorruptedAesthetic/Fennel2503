@@ -139,7 +139,7 @@ pub mod pallet {
                 Error::<T>::RatingSignalAlreadyExists
             );
             ensure!(
-                !(T::Currency::free_balance(&who) <= T::LockPrice::get().into()),
+                (T::Currency::free_balance(&who) > T::LockPrice::get().into()),
                 Error::<T>::InsufficientBalance
             );
             T::Currency::ensure_can_withdraw(
@@ -170,7 +170,7 @@ pub mod pallet {
         ) -> DispatchResultWithPostInfo {
             let who = ensure_signed(origin)?;
             ensure!(
-                !(T::Currency::free_balance(&who) <= T::LockPrice::get().into()),
+                (T::Currency::free_balance(&who) > T::LockPrice::get().into()),
                 Error::<T>::InsufficientBalance
             );
             ensure!(

@@ -32,7 +32,7 @@ fn add_validators_should_work() {
         System::account_nonce(ValidatorId(4));
         // Set session keys for validator 4 before registering
         assert_ok!(Session::set_keys(
-            RuntimeOrigin::signed(ValidatorId(4).into()),
+            RuntimeOrigin::signed(ValidatorId(4)),
             UintAuthorityId(4),
             Vec::new(),
         ));
@@ -144,7 +144,7 @@ fn unauthorized_origin_cannot_add_validators() {
         // Use an unauthorized account (not root)
         assert_noop!(
             ValidatorManager::register_validators(
-                RuntimeOrigin::signed(ValidatorId(2).into()),
+                RuntimeOrigin::signed(ValidatorId(2)),
                 validator_keys(&[4])
             ),
             frame_support::error::BadOrigin
@@ -159,7 +159,7 @@ fn unauthorized_origin_cannot_remove_validators() {
         // Use an unauthorized account (not root)
         assert_noop!(
             ValidatorManager::remove_validator(
-                RuntimeOrigin::signed(ValidatorId(2).into()),
+                RuntimeOrigin::signed(ValidatorId(2)),
                 ValidatorId(3)
             ),
             frame_support::error::BadOrigin

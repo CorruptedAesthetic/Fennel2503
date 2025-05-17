@@ -130,7 +130,7 @@ pub mod pallet {
             if T::Currency::total_balance(&who) < T::Currency::minimum_balance() {
                 return Err(Error::<T>::InsufficientBalance.into());
             }
-            ensure!(&who != &poster, Error::<T>::CannotAssignOwnSubmission);
+            ensure!(who != poster, Error::<T>::CannotAssignOwnSubmission);
             ensure!(
                 SubmissionsList::<T>::contains_key(&poster, &resource_location),
                 Error::<T>::SubmissionDoesNotExist
