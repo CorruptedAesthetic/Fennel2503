@@ -5,28 +5,41 @@ on: push
 jobs:
   srtool:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        chain: ["solochain"]
     steps:
       - uses: actions/checkout@v4
       
       - name: Srtool build
         id: srtool_build
         uses: chevdor/srtool-actions@v0.8.0
+        env:
+          # optional: will be passed to docker srtool run cmd
+          BUILD_OPTS: "--features on-chain-release-build"
         with:
-          chain: solochain
+          chain: ${{ matrix.chain }}
           runtime_dir: runtime
           package: solochain-template-runtime
           
       - name: Summary
         run: |
-          echo '${{ steps.srtool_build.outputs.json }}' | jq . > solochain-srtool-digest.json
-          cat solochain-srtool-digest.json
-          echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}"
+          echo "====================== BUILD SUMMARY ======================"
+          echo "- Version: ${{ steps.srtool_build.outputs.version }}"
+          echo "- Info: ${{ steps.srtool_build.outputs.info }}"
+          echo "- Proposal Hash: ${{ steps.srtool_build.outputs.proposal_hash }}"
+          echo "- WASM Location: ${{ steps.srtool_build.outputs.wasm }}"
+          echo "- WASM Compressed: ${{ steps.srtool_build.outputs.wasm_compressed }}"
+          echo "- IPFS Hash: ${{ steps.srtool_build.outputs.ipfs }}"
+          echo "=========================================================="
+          echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
+          cat ${{ matrix.chain }}-srtool-digest.json
           
       - name: Archive Runtime
         uses: actions/upload-artifact@v4
         with:
-          name: solochain-runtime-${{ github.sha }}
+          name: ${{ matrix.chain }}-runtime-${{ github.sha }}
           path: |
             ${{ steps.srtool_build.outputs.wasm }}
             ${{ steps.srtool_build.outputs.wasm_compressed }}
-            solochain-srtool-digest.json
+            ${{ matrix.chain }}-srtool-digest.json
